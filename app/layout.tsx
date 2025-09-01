@@ -5,9 +5,9 @@ import {
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Toaster } from "@/components/ui/sonner"
-import { ThemeProvider } from "@/components/ThemeProvider";
 import { AnimatePresence } from "framer-motion";
 import { Providers } from "@/components/providers";
+import Script from 'next/script'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -31,18 +31,20 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-    <ThemeProvider>
       <Providers>
         <AnimatePresence>
-            <html lang="en">
+            <html lang="en" className="dark">
               <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+                <Script 
+                  src="https://www.cryptohopper.com/widgets/js/script"
+                  strategy="afterInteractive"
+                />
                 {children}
                 <Toaster />
               </body>
             </html>
         </AnimatePresence>
       </Providers>
-    </ThemeProvider>
     </ClerkProvider>
   )
 }

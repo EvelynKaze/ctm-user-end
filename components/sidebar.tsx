@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { useTheme } from "./ThemeProvider";
 import DashLogo from "./dashlogo";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { closeSidebar } from "@/store/sideBar";
@@ -37,7 +36,6 @@ const secondaryNavigation = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { theme, toggleTheme } = useTheme();
   const dispatch = useDispatch();
 
   return (
@@ -73,24 +71,6 @@ export default function Sidebar() {
         })}
       </nav>
       <nav className="mt-auto space-y-1 border-t px-3 py-4">
-        <span
-          onClick={() => {
-            toggleTheme();
-            dispatch(closeSidebar());
-          }}
-          className="group cursor-pointer flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium dark:text-white text-appDarkCard hover:bg-appGold20"
-        >
-          <Icon
-            icon={
-              theme === "light"
-                ? "iconamoon:mode-dark-light"
-                : "entypo:light-up"
-            }
-            strokeWidth={1.5}
-            className="h-5 w-5 text-3xl"
-          />
-          {theme === "light" ? "Dark mode" : "Light mode"}
-        </span>
         {secondaryNavigation.map((item) => (
           <Link
             key={item.name}

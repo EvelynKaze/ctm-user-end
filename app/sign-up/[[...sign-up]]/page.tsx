@@ -2,7 +2,6 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Logo from "@/components/logo";
-import ThemeToggle from "@/components/toggleTheme";
 import { LoginAdsSlider } from "@/components/login-ads";
 import { SignUp } from "@clerk/nextjs";
 
@@ -10,9 +9,6 @@ export default function SignupForm() {
 
   return (
     <div className="flex justify-center relative w-full min-h-screen">
-      <div className="absolute top-8 right-8">
-        <ThemeToggle />
-      </div>
       <Link href="/" className="absolute top-8 left-8 text-sm">
         Return
       </Link>

@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { useTheme } from "./ThemeProvider";
 import AdminLogo from "./dashlogo";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { closeSidebar } from "@/store/sideBar";
@@ -40,7 +39,6 @@ const navigation = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const { theme, toggleTheme } = useTheme();
   const dispatch = useDispatch();
 
   return (
@@ -77,26 +75,6 @@ export default function AdminSidebar() {
             </Link>
           );
         })}
-      </nav>
-      <nav className="mt-auto space-y-1 border-t px-3 py-4">
-        <span
-          onClick={() => {
-            toggleTheme();
-            dispatch(closeSidebar());
-          }}
-          className="group cursor-pointer flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium dark:text-white text-appDarkCard hover:bg-appGold20 cursor-pointer"
-        >
-          <Icon
-            icon={
-              theme === "light"
-                ? "iconamoon:mode-dark-light"
-                : "entypo:light-up"
-            }
-            strokeWidth={1.5}
-            className="h-5 w-5 text-3xl"
-          />
-          {theme === "light" ? "Dark mode" : "Light mode"}
-        </span>
       </nav>
     </div>
   );

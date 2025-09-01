@@ -1,5 +1,4 @@
 import Logo from "@/components/logo";
-import ThemeToggle from "@/components/toggleTheme";
 import { toggleNav } from "@/store/navSlice";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import Link from "next/link";
@@ -35,7 +34,6 @@ const PublicNav = () => {
         >
           <Icon icon={"quill:hamburger"} />
         </button>
-        <ThemeToggle />
       </div>
     </nav>
   );
