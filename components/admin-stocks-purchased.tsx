@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { databases } from "@/lib/appwrite"; // Import your database client
+// import { databases } from "@/lib/appwrite"; // Import your database client
 import ENV from "@/constants/env";
 import { Check, X } from "lucide-react";
 import { toast } from "sonner"
@@ -25,66 +25,66 @@ const AdminPortfolioPage = () => {
   const [selectedStock, setSelectedStock] = useState<AdminStock | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchStocks = async () => {
-      setIsLoading(true);
-      try {
-        const response = await databases.listDocuments(
-          ENV.databaseId,
-          ENV.collections.stockOptionsPurchases
-        );
-        const stocksData: AdminStock[] = response.documents.map((doc) => ({
-          $id: doc.$id,
-          stock_status: doc.stock_status,
-          full_name: doc.full_name,
-          stock_symbol: doc.stock_symbol,
-          stock_quantity: doc.stock_quantity,
-          stock_initial_value_pu: doc.stock_initial_value_pu,
-          stock_current_value: doc.stock_current_value,
-          stock_change: doc.stock_change,
-          stock_profit_loss: doc.stock_profit_loss,
-          isProfit: doc.isProfit,
-          isMinus: doc.isMinus,
-          stock_token: doc.stock_token,
-          stock_name: doc.stock_name,
-          stock_initial_value: doc.stock_initial_value,
-          stock_value_entered: doc.stock_value_entered,
-          stock_token_address: doc.stock_token_address,
-        }));
-        setStocks(stocksData);
-      } catch (error) {
-        console.error("Error fetching stock data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchStocks = async () => {
+  //     setIsLoading(true);
+  //     try {
+  //       const response = await databases.listDocuments(
+  //         ENV.databaseId,
+  //         ENV.collections.stockOptionsPurchases
+  //       );
+  //       const stocksData: AdminStock[] = response.documents.map((doc) => ({
+  //         $id: doc.$id,
+  //         stock_status: doc.stock_status,
+  //         full_name: doc.full_name,
+  //         stock_symbol: doc.stock_symbol,
+  //         stock_quantity: doc.stock_quantity,
+  //         stock_initial_value_pu: doc.stock_initial_value_pu,
+  //         stock_current_value: doc.stock_current_value,
+  //         stock_change: doc.stock_change,
+  //         stock_profit_loss: doc.stock_profit_loss,
+  //         isProfit: doc.isProfit,
+  //         isMinus: doc.isMinus,
+  //         stock_token: doc.stock_token,
+  //         stock_name: doc.stock_name,
+  //         stock_initial_value: doc.stock_initial_value,
+  //         stock_value_entered: doc.stock_value_entered,
+  //         stock_token_address: doc.stock_token_address,
+  //       }));
+  //       setStocks(stocksData);
+  //     } catch (error) {
+  //       console.error("Error fetching stock data:", error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
 
-    fetchStocks();
-  }, []);
+  //   fetchStocks();
+  // }, []);
 
-  const updateStockStatus = async (stockId: string, status: string) => {
-    try {
-      await databases.updateDocument(
-        ENV.databaseId,
-        ENV.collections.stockOptionsPurchases,
-        stockId,
-        { stock_status: status }
-      );
-      setStocks((prevStocks: AdminStock[]) =>
-        prevStocks.map((stock: AdminStock) =>
-          stock.$id === stockId ? { ...stock, stock_status: status } : stock
-        )
-      );
-      toast("Success", {
-        description: `Stock status updated to ${status}.`,
-      });
-    } catch (error) {
-      console.error("Error updating stock status:", error);
-      toast("Error", {
-        description: "Failed to update stock status. Please try again.",
-      });
-    }
-  };
+  // const updateStockStatus = async (stockId: string, status: string) => {
+  //   try {
+  //     await databases.updateDocument(
+  //       ENV.databaseId,
+  //       ENV.collections.stockOptionsPurchases,
+  //       stockId,
+  //       { stock_status: status }
+  //     );
+  //     setStocks((prevStocks: AdminStock[]) =>
+  //       prevStocks.map((stock: AdminStock) =>
+  //         stock.$id === stockId ? { ...stock, stock_status: status } : stock
+  //       )
+  //     );
+  //     toast("Success", {
+  //       description: `Stock status updated to ${status}.`,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error updating stock status:", error);
+  //     toast("Error", {
+  //       description: "Failed to update stock status. Please try again.",
+  //     });
+  //   }
+  // };
 
   const handleUpdateStock = async (updatedStock: AdminStock) => {
     setIsLoading(true);
@@ -94,9 +94,9 @@ const AdminPortfolioPage = () => {
     const {
       stock_change,
       stock_current_value,
-      isProfit,
+      // isProfit,
       stock_profit_loss,
-      isMinus,
+      // isMinus,
     } = updatedStock;
 
     // Convert stock_current_value to a float if it's not already
@@ -128,35 +128,35 @@ const AdminPortfolioPage = () => {
       return;
     }
 
-    try {
-      await databases.updateDocument(
-        ENV.databaseId,
-        ENV.collections.stockOptionsPurchases,
-        updatedStock.$id,
-        {
-          stock_profit_loss: validStockProfitLoss,
-          stock_current_value: validStockCurrentValue,
-          stock_change: validStockChange,
-          isProfit,
-          isMinus,
-        }
-      );
-      setStocks((prevStocks: AdminStock[]) =>
-        prevStocks.map((stock: AdminStock) =>
-          stock.$id === updatedStock.$id ? updatedStock : stock
-        )
-      );
-      toast("Success", {
-        description: "Stock updated successfully.",
-      });
-    } catch (error) {
-      console.error("Error updating stock:", error);
-      toast("Error", {
-        description: "Failed to update stock. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // try {
+    //   await databases.updateDocument(
+    //     ENV.databaseId,
+    //     ENV.collections.stockOptionsPurchases,
+    //     updatedStock.$id,
+    //     {
+    //       stock_profit_loss: validStockProfitLoss,
+    //       stock_current_value: validStockCurrentValue,
+    //       stock_change: validStockChange,
+    //       isProfit,
+    //       isMinus,
+    //     }
+    //   );
+    //   setStocks((prevStocks: AdminStock[]) =>
+    //     prevStocks.map((stock: AdminStock) =>
+    //       stock.$id === updatedStock.$id ? updatedStock : stock
+    //     )
+    //   );
+    //   toast("Success", {
+    //     description: "Stock updated successfully.",
+    //   });
+    // } catch (error) {
+    //   console.error("Error updating stock:", error);
+    //   toast("Error", {
+    //     description: "Failed to update stock. Please try again.",
+    //   });
+    // } finally {
+    //   setIsLoading(false);
+    // }
   };
 
   return (
@@ -226,23 +226,23 @@ const AdminPortfolioPage = () => {
                           {stock.stock_status === "pending" && (
                             <>
                               <Button
-                                onClick={() =>
-                                  updateStockStatus(stock.$id, "approved")
-                                }
+                                // onClick={() =>
+                                //   updateStockStatus(stock.$id, "approved")
+                                // }
                                 className="text-white bg-green-500 hover:bg-green-800"
                               >
                                 <Check className="h-4 w-4" />
                               </Button>
                               <Button
-                                onClick={() => {
-                                  if (
-                                    confirm(
-                                      "Are you sure you want to reject this stock?"
-                                    )
-                                  ) {
-                                    updateStockStatus(stock.$id, "rejected");
-                                  }
-                                }}
+                                // onClick={() => {
+                                //   if (
+                                //     confirm(
+                                //       "Are you sure you want to reject this stock?"
+                                //     )
+                                //   ) {
+                                //     updateStockStatus(stock.$id, "rejected");
+                                //   }
+                                // }}
                                 className="text-white bg-red-500 hover:bg-red-800"
                               >
                                 <X className="h-4 w-4" />

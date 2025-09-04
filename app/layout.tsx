@@ -5,7 +5,6 @@ import {
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Toaster } from "@/components/ui/sonner"
-import { AnimatePresence } from "framer-motion";
 import { Providers } from "@/components/providers";
 import Script from 'next/script'
 
@@ -30,9 +29,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}>
       <Providers>
-        <AnimatePresence>
             <html lang="en" className="dark">
               <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
                 <Script 
@@ -43,7 +41,6 @@ export default function RootLayout({
                 <Toaster />
               </body>
             </html>
-        </AnimatePresence>
       </Providers>
     </ClerkProvider>
   )

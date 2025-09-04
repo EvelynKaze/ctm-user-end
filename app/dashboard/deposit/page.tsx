@@ -20,11 +20,10 @@ import { createDeposit } from "@/app/actions/deposit";
 
 const depositSchema = z.object({
   currency: z.string().nonempty("Please select a cryptocurrency."),
-  amount: z.preprocess(
-    (val) => (typeof val === "string" ? parseFloat(val) : val),
-    z.number().positive("Amount must be a positive number.")
-  ),
+  amount: z.number().positive("Amount must be a positive number."),
 });
+
+type DepositFormData = z.infer<typeof depositSchema>;
 
 const Deposit = () => {
   const { user } = useUser();
@@ -37,9 +36,10 @@ const Deposit = () => {
   const [selectedAddress, setSelectedAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm({
+  const form = useForm<DepositFormData>({
     resolver: zodResolver(depositSchema),
     defaultValues: { currency: "", amount: 0 },
+    mode: "onChange",
   });
 
   useEffect(() => {
@@ -77,9 +77,10 @@ const Deposit = () => {
     if (isConfirmed) {
       const handleTransactionSuccess = async () => {
         try {
+          const formValues = form.getValues();
           await createDeposit({
-            token_name: form.getValues().currency,
-            amount: form.getValues().amount,
+            token_name: formValues.currency,
+            amount: typeof formValues.amount === "number" ? formValues.amount : Number(formValues.amount),
             token_deposit_address: selectedAddress,
             user_id: user?.id,
             full_name: user?.fullName,

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AdminStocks from "./edit-stocks";
-import CryptocurrenciesAdmin from "./manage-crypto";
-import AdminCopyTrading from "./edit-copytrades";
+// import AdminStocks from "./edit-stocks";
+// import CryptocurrenciesAdmin from "./manage-crypto";
+// import AdminCopyTrading from "./edit-copytrades";
 import { motion } from "framer-motion";
 
 export default function AdminDashboard() {
@@ -40,13 +40,13 @@ export default function AdminDashboard() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="stocks" className="mt-6">
-          <CryptocurrenciesAdmin />
+          {/* <CryptocurrenciesAdmin /> */}
         </TabsContent>
         <TabsContent value="component1" className="mt-6">
-          <AdminStocks />
+          {/* <AdminStocks /> */}
         </TabsContent>
         <TabsContent value="component2" className="mt-6">
-          <AdminCopyTrading />
+          {/* <AdminCopyTrading /> */}
         </TabsContent>
       </Tabs>
     </motion.div>

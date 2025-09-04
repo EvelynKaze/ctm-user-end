@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { FormProvider } from "react-hook-form";
+import { UseFormReturn, FormProvider } from "react-hook-form";
 import {
   Card,
   CardHeader,
@@ -23,7 +23,6 @@ import {
 import { Input } from "@/components/ui/input";
 import DepositModal from "@/components/modals/deposit-modal";
 import TransactionHash from "@/components/user-deposit/TransactionHash";
-import { UseFormReturn } from "react-hook-form";
 import { useAccount } from "wagmi";
 import { PaymentModal } from "./payment-modal"
 import { useDispatch } from "react-redux";
@@ -36,7 +35,7 @@ import { useUser } from "@clerk/nextjs";
 // import { createStockPurchase } from "@/app/actions/stockPurchase";
 
 interface DepositFundsProps {
-  form: UseFormReturn<{ currency: string; amount: number }>;
+  form: UseFormReturn<{ currency: string; amount: number }, unknown, { currency: string; amount: number }>;
   cryptocurrencies: Array<{ id: string; value: string; name: string }>;
   selectedAddress: string;
   handleCurrencyChange: (value: string) => void;

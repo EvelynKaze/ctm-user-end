@@ -37,10 +37,7 @@ import { withdraw } from "@/app/actions/withdraw";
 
 const withdrawalSchema = z.object({
     currency: z.string().nonempty("Please select a cryptocurrency."),
-    amount: z.preprocess(
-        (val) => (typeof val === "string" ? parseFloat(val) : val),
-        z.number().positive("Amount must be a positive number.")
-    ),
+    amount: z.number().positive("Amount must be a positive number."),
     address: z.string().nonempty("Please enter a wallet address."),
 });
 
@@ -57,9 +54,10 @@ const Withdrawal = () => {
         resolver: zodResolver(withdrawalSchema),
         defaultValues: {
             currency: "",
-            amount: undefined,
+            amount: 0,
             address: "",
         },
+        mode: "onChange",
     });
 
     // Fetch cryptocurrencies from Appwrite database
@@ -163,9 +161,11 @@ const Withdrawal = () => {
                                                 <FormLabel>Amount</FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        type="text"
+                                                        type="number"
+                                                        step="0.01"
                                                         placeholder="Enter withdrawal amount (e.g., 0.01)"
                                                         {...field}
+                                                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
