@@ -1,4 +1,5 @@
 import { TrendingUp, Facebook, Twitter, Instagram, Youtube, Smartphone, Monitor } from "lucide-react"
+import Link from "next/link"
 
 export function Footer() {
   return (
@@ -10,24 +11,16 @@ export function Footer() {
             <h3 className="text-lg font-semibold text-white mb-4">Company</h3>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                  About Us
-                </a>
+                <Link href="/about" className="text-slate-400 hover:text-white transition-colors">About Us</Link>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                  Help Desk
-                </a>
+                <Link href="/copy-trading" className="text-slate-400 hover:text-white transition-colors">Copy Trading</Link>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                  Affiliate Program
-                </a>
+                <Link href="/stock-trading" className="text-slate-400 hover:text-white transition-colors">Stock Trading</Link>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                  Careers
-                </a>
+                <Link href="/crypto-trading" className="text-slate-400 hover:text-white transition-colors">Crypto Trading</Link>
               </li>
             </ul>
           </div>
@@ -37,25 +30,25 @@ export function Footer() {
             <h3 className="text-lg font-semibold text-white mb-4">Follow Us</h3>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
                   <Facebook className="w-4 h-4" />
                   Facebook
                 </a>
               </li>
               <li>
-                <a href="#" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
                   <Instagram className="w-4 h-4" />
                   Instagram
                 </a>
               </li>
               <li>
-                <a href="#" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
                   <Twitter className="w-4 h-4" />
                   Twitter
                 </a>
               </li>
               <li>
-                <a href="#" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+                <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
                   <Youtube className="w-4 h-4" />
                   YouTube
                 </a>
@@ -68,13 +61,13 @@ export function Footer() {
             <h3 className="text-lg font-semibold text-white mb-4">Download The App</h3>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+                <a href="https://play.google.com/store" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
                   <Smartphone className="w-4 h-4" />
                   Get it on Google Play
                 </a>
               </li>
               <li>
-                <a href="#" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+                <a href="https://www.apple.com/app-store/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
                   <Monitor className="w-4 h-4" />
                   Download on the App Store
                 </a>
@@ -102,15 +95,9 @@ export function Footer() {
         <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-slate-400">© 2025 CopyTradingMarkets. All rights reserved.</p>
           <div className="flex items-center gap-6">
-            <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">
-              Terms of Service
-            </a>
-            <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">
-              Risk Disclosure
-            </a>
+            <Link href="/privacy-policy" className="text-sm text-slate-400 hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="text-sm text-slate-400 hover:text-white transition-colors">Terms of Service</Link>
+            <Link href="/risk-disclosure" className="text-sm text-slate-400 hover:text-white transition-colors">Risk Disclosure</Link>
           </div>
         </div>
       </div>

@@ -1,10 +1,13 @@
+"use client"
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Play, TrendingUp, Shield, Zap, Users, BarChart3 } from "lucide-react";
+import { useRouter } from 'next/navigation'
 import Image from "next/image";
 
 const HeroSection = () => {
+  const router = useRouter()
   return (
     <div className="relative min-h-screen bg-black overflow-hidden">
       {/* Background gradient overlay */}
@@ -62,11 +65,11 @@ const HeroSection = () => {
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="hero" size="lg" className="group">
+              <Button variant="hero" size="lg" className="group" onClick={() => router.push('/sign-in')}>
                 Start Copy Trading
                 <TrendingUp className="ml-2 h-4 w-4 group-hover:scale-110 transition-transform" />
               </Button>
-              <Button variant="hero-outline" size="lg" className="group">
+              <Button variant="hero-outline" size="lg" className="group" onClick={() => window.open('https://youtube.com', '_blank')}>
                 <Play className="mr-2 h-4 w-4" />
                 Watch Demo
               </Button>

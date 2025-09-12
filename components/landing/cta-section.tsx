@@ -1,7 +1,10 @@
+"use client"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Shield } from "lucide-react"
+import { useRouter } from 'next/navigation'
 
 export function CtaSection() {
+  const router = useRouter()
   return (
     <section className="py-24 bg-gradient-to-br from-black via-appDark to-appDarkCard relative overflow-hidden">
       {/* Background decoration */}
@@ -55,6 +58,7 @@ export function CtaSection() {
             <Button
               size="lg"
               className="bg-gradient-to-r from-appGold100 to-appGold200 hover:from-appGold200 hover:to-appGold300 text-appDarkCard px-8 py-6 text-lg font-semibold group shadow-glow-gold"
+              onClick={() => router.push('/sign-in')}
             >
               Start Trading Now
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

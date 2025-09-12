@@ -1,7 +1,9 @@
+"use client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Check, Star, Zap, Crown } from "lucide-react"
+import { useRouter } from 'next/navigation'
 
 const plans = [
   {
@@ -58,6 +60,7 @@ const plans = [
 ]
 
 export function PlansSection() {
+  const router = useRouter()
   return (
     <section className="py-24 px-4 bg-black">
       <div className="max-w-7xl mx-auto">
@@ -123,7 +126,7 @@ export function PlansSection() {
 
                   {/* CTA Button */}
                   <div className="pt-6">
-                    <Button variant={plan.buttonVariant} size="lg" className="w-full font-semibold">
+                    <Button variant={plan.buttonVariant} size="lg" className="w-full font-semibold" onClick={() => router.push('/sign-in')}>
                       Start Now
                     </Button>
                   </div>
