@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trade } from "@/types/dashboard";
+import { CopyTradingOption } from "@/types/dashboard";
 import { useState, useEffect } from "react";
 import { setCopyTrade } from "@/store/copyTradeSlice";
 import { useRouter } from "next/navigation";
@@ -20,9 +20,9 @@ export function CopyTradingOptions({ portfolio }:
     portfolio: { total_investment: number, current_value: number, roi: number }, 
   }) 
 {
-    const [trades, setTrades] = useState<Trade[]>([]);
+    const [trades, setTrades] = useState<CopyTradingOption[]>([]);
     const [open, setOpen] = useState(false);
-    const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
+    const [selectedTrade, setSelectedTrade] = useState<CopyTradingOption | null>(null);
     const dispatch = useAppDispatch();
     const { user } = useUser()
     const router = useRouter();
@@ -31,16 +31,22 @@ export function CopyTradingOptions({ portfolio }:
       const getTrades = async () => {
         try {
           const tradesData = await fetchTrades();
-          setTrades(tradesData);
+          if (tradesData) {
+            setTrades(tradesData);
+          } else {
+            console.error("No trades data received");
+            setTrades([]);
+          }
         } catch (error) {
           console.error("Failed to fetch trades:", error);
+          setTrades([]);
         }
       };
     
       getTrades();
     }, []);
 
-    const handlePurchase = (trade: Trade) => {
+    const handlePurchase = (trade: CopyTradingOption) => {
       try {
         const { trade_min, trade_max, trade_roi_min, trade_roi_max, trade_risk, trade_duration } = trade;
         const total_investment = portfolio?.total_investment || 0; 
@@ -112,7 +118,7 @@ export function CopyTradingOptions({ portfolio }:
             <ScrollArea className="h-[400px] pr-2">
               <div className="grid gap-4">
                 {trades?.map((trade) => (
-                  <Card key={trade.id} className="flex flex-col">
+                  <Card key={trade._id} className="flex flex-col">
                     <CardHeader className="flex-1">
                       <h3 className="text-2xl font-bold text-center">{trade?.trade_title}</h3>
                       <p className="text-center text-muted-foreground">{trade?.trade_description}</p>

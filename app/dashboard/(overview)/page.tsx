@@ -12,8 +12,7 @@ import { fetchTransactions } from "@/app/actions/fetchTransactions";
 import { Live, Transaction } from "@/types";
 import { toast } from "sonner";
 import { updateUserMetadata } from "@/app/actions/role";
-
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+import { getUserByClerkId } from "@/app/actions/user/getUserByClerkId";
 
 export default function UserDashboard() {
   const { user } = useUser();
@@ -23,14 +22,13 @@ export default function UserDashboard() {
     roi: 0,
   });
 
-  // Fetch user data from backend
+  // Fetch user data from backend using action
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.id) return;
       
       try {
-        const response = await fetch(`${apiUrl}/users/clerk/${user.id}`);
-        const userData = await response.json();
+        const userData = await getUserByClerkId(user.id);
         console.log("User data from backend:", userData?.data);
         
         if (userData?.success && userData?.data) {

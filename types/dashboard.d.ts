@@ -32,3 +32,19 @@ export interface CryptoStats {
     user_name?: string;
   }
   
+  export interface CopyTradingOption {
+    _id: string;
+    trade_title: string;
+    trade_max: number;
+    trade_min: number;
+    user: string;
+    trade_description: string;
+    trade_roi_min: number;
+    trade_roi_max: number;
+    isRecommended: boolean;
+    trade_risk: string;
+    trade_duration: number;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+  }
