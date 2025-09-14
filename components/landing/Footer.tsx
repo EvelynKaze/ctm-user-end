@@ -76,7 +76,7 @@ export function Footer() {
           </div>
 
           {/* Logo */}
-           <div className="flex flex-col items-start md:items-end">
+          <div className="flex flex-col items-start md:items-end">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-gold rounded-full flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-primary-foreground" />

@@ -1,15 +1,14 @@
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { TrendingUp } from "lucide-react";
 
 const FooterLogo = () => {
   return (
-    <div className="flex items-center gap-1">
-      <Icon
-        className="text-appDark mt-1 text-xl sm:text-4xl"
-        icon={"mingcute:currency-baht-line"}
-      />
-      <p className="text-white font-semibold text-base sm:text-xl">
+    <div className="flex items-center space-x-2">
+      <div className="w-8 h-8 bg-gradient-gold rounded-full flex items-center justify-center">
+        <TrendingUp className="w-5 h-5 text-primary-foreground" />
+      </div>
+      <span className="text-xl font-bold bg-gradient-gold bg-clip-text text-transparent">
         CopyTradingMarkets
-      </p>
+      </span>
     </div>
   );
 };
