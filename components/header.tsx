@@ -12,7 +12,7 @@ export function Header({ userName }: HeaderProps){
     const { isConnected } = useAccount();
 
   return (
-    <header className="flex items-center justify-between w-full border-b px-4 md:px-6 h-16 md:h-24 py-4">
+    <header className="flex items-center bg-black justify-between w-full  px-4 md:px-6 h-16 md:h-24 py-4">
       <ToggleSidebar />
       <div className="sm:flex hidden flex-col md:gap-1">
         <h1 className="text-base sm:text-lg md:text-2xl font-semibold capitalize">

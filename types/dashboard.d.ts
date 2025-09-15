@@ -48,3 +48,5 @@ export interface CryptoStats {
     updatedAt: string;
     __v: number;
   }
+
+  

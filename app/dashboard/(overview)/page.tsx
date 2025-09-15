@@ -1,7 +1,6 @@
 "use client";
 import { CopyTradingOptions } from "@/components/copytrading-options";
 import { StatsCards } from "@/components/stats-cards";
-import { StockOptions } from "@/components/stock-options";
 import { useDispatch } from "react-redux";
 import TradingViewWidget from "@/components/TradingViewWidget"
 import { useEffect, useState } from "react";
@@ -13,6 +12,7 @@ import { Live, Transaction } from "@/types";
 import { toast } from "sonner";
 import { updateUserMetadata } from "@/app/actions/role";
 import { getUserByClerkId } from "@/app/actions/user/getUserByClerkId";
+import { StockTradingTable } from "@/components/stock-trading-table";
 
 export default function UserDashboard() {
   const { user } = useUser();
@@ -155,7 +155,8 @@ export default function UserDashboard() {
       <div className="flex-1 h-full overflow-y-scroll space-y-6">
         <StatsCards stats={stats} />
         <TradingViewWidget />
-        <StockOptions portfolio={userPortfolio} />
+        {/* <StockOptions portfolio={userPortfolio} /> */}
+        <StockTradingTable />
       </div>
       <div className="w-full lg:w-80 space-y-6">
         <CopyTradingOptions 
