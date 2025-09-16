@@ -29,9 +29,8 @@ import { useDispatch } from "react-redux";
 import { openModal } from "@/store/modalSlice";
 import { toast } from "sonner"
 import { useState } from "react";
-import { createDeposit } from "@/app/actions/deposit";
-import { useUser } from "@clerk/nextjs";
-// import { createCopyTrade } from "@/app/actions/copytrade";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 // import { createStockPurchase } from "@/app/actions/stockPurchase";
 
 interface DepositFundsProps {
@@ -42,7 +41,7 @@ interface DepositFundsProps {
   onSubmit: (data: { currency: string; amount: number }) => void;
   isLoading: boolean;
   stockOption?: { stock?: { total: number; symbol: string; name: string; price: number; change: number; isMinus: boolean; } };
-  copyTrade?: { copy?: { title: string; trade_min: number; trade_max: number; trade_risk: string;  trade_roi_min: number; trade_roi_max: number; } };
+  copyTrade?: { copy?: { title: string; trade_min: number; trade_max: number; trade_risk: string;  trade_roi_min: number; trade_roi_max: number; trade_duration: number;} };
   baseError?: { shortMessage: string };
   tranHash: string;
 }
@@ -62,7 +61,7 @@ const DepositFunds: React.FC<DepositFundsProps> = ({
   console.log("Tokens", cryptocurrencies)
   console.log("Base Error", baseError)
   console.log("selected token", form.getValues("currency"))
-  const { user } = useUser();
+  const { userData } = useSelector((state: RootState) => state.user);
   const { isConnected } = useAccount();
   const [open, setOpen] = useState(false)
   const dispatch = useDispatch()
@@ -70,44 +69,18 @@ const DepositFunds: React.FC<DepositFundsProps> = ({
 
   const handlePaymentOption = async(option: string) => {
     if (option === "copy_wallet"){
-      await createDeposit({ 
-        token_name: form.getValues().currency,
-        amount: form.getValues().amount,
-        token_deposit_address: selectedAddress,
-        user_id: user?.id,
-        full_name: user?.fullName,
-      });
-
-      // if (stockOption?.stock) {
-      //   createStockPurchase({
-      //     data: stockOption?.stock,
-      //     user_id: user?.id,
-      //     full_name: user?.fullName,
-      //     stock_initial_value:stockOption.stock.total,
-      //     stock_value_entered: form.getValues().amount,
-      //     stock_token: form.getValues().currency,
-      //     stock_quantity: stockOption?.stock?.total,
-      //     stock_status: "pending",
-      //     stock_token_address: selectedAddress,
-      //   })
-      // }
-
-      // if (copyTrade?.copy) {
-      //   createCopyTrade({ 
-      //     data: copyTrade?.copy, 
-      //     trade_title: copyTrade?.copy.title,
-      //     user_id: user?.id, 
-      //     full_name: user?.fullName,
-      //     initial_investment: form.getValues().amount,
-      //     trade_token: form.getValues().currency,
-      //     trade_token_address: selectedAddress,
-      //     trade_status: "pending"      
-      //   })
-      // }
-
+      // Just open the modal immediately - don't create DB entries yet
       dispatch(openModal({
         modalType: "deposit",
-        modalProps: { address: selectedAddress, currency: form.getValues("currency"), amount: form.getValues("amount") },
+        modalProps: { 
+          address: selectedAddress, 
+          currency: form.getValues("currency"), 
+          amount: form.getValues("amount"),
+          // Pass the trade data to modal for later processing
+          copyTradeData: copyTrade?.copy && Object.keys(copyTrade.copy).length > 0 ? copyTrade.copy : null,
+          stockOptionData: stockOption?.stock && Object.keys(stockOption.stock).length > 0 ? stockOption.stock : null,
+          userData: userData
+        },
       }));
       setOpen(false)
     } else if (option === "connect_wallet") {

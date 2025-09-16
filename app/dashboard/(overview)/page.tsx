@@ -3,43 +3,47 @@ import { CopyTradingOptions } from "@/components/copytrading-options";
 import { StatsCards } from "@/components/stats-cards";
 import { TradingViewChart } from "@/components/TradingViewChart";
 import { MobileTabView } from "@/components/mobile-tab-view";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { getUserByClerkId } from "@/app/actions/user/getUserByClerkId";
 import { StockTradingTable } from "@/components/stock-trading-table";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/store/store";
+import { setUserLoading, setUserData, setUserError } from "@/store/userSlice";
+import { clearCopyTrade } from "@/store/copyTradeSlice";
+import { clearStockOption } from "@/store/stockOptionsSlice";
 
 export default function UserDashboard() {
   const { user } = useUser();
-  const [userPortfolio, setUserPortfolio] = useState({
-    total_investment: 0,
-    current_value: 0,
-    roi: 0,
-  });
+  const dispatch = useDispatch();
+  const { userData } = useSelector((state: RootState) => state.user);
 
   // Fetch user data from backend using action
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.id) return;
       
+      dispatch(setUserLoading(true));
+      
       try {
-        const userData = await getUserByClerkId(user.id);
-        console.log("User data from backend:", userData?.data);
+        const userResponse = await getUserByClerkId(user.id);
+        console.log("User data from backend:", userResponse?.data);
         
-        if (userData?.success && userData?.data) {
-          const data = userData.data;
-          setUserPortfolio({
-            total_investment: data.totalInvestment || 0,
-            current_value: data.currentValue || 0,
-            roi: data.roi || 0,
-          });
+        if (userResponse?.success && userResponse?.data) {
+          dispatch(setUserData(userResponse.data));
+        } else {
+          dispatch(setUserError("Failed to fetch user data"));
         }
       } catch (error) {
         console.error("Failed to fetch user data:", error);
+        dispatch(setUserError("Failed to fetch user data"));
       }
     };
 
     fetchUserData();
-  }, [user?.id]);
+    dispatch(clearStockOption());
+    dispatch(clearCopyTrade());
+  }, [user?.id, dispatch]);
 
   
   // const dispatch = useDispatch();
@@ -87,8 +91,7 @@ export default function UserDashboard() {
   //   };
 
   //   syncInvestment();
-  //   dispatch(clearStockOption());
-  //   dispatch(clearCopyTrade());
+
   // }, [user, transactions, live, totalValue, isSyncing, dispatch]);
 
   // // Fetch transactions with improved error handling
@@ -125,18 +128,12 @@ export default function UserDashboard() {
   //   loadLiveData();
   // }, []);
 
-  // // Get portfolio values with fallbacks
-  // const userPortfolio = {
-  //   total_investment: Number(user?.publicMetadata?.totalInvestment) || totalValue || 0,
-  //   current_value: Number(user?.publicMetadata?.currentValue) || 0,
-  //   roi: Number(user?.publicMetadata?.roi) || 0,
-  // };
-
-  // const stats = {
-  //   total_investment: userPortfolio.total_investment,
-  //   current_value: userPortfolio.current_value,
-  //   roi: userPortfolio.roi,
-  // };
+  // Create portfolio object from Redux state
+  const userPortfolio = {
+    total_investment: userData?.totalInvestment || 0,
+    current_value: userData?.currentValue || 0,
+    roi: userData?.roi || 0,
+  };
 
   const stats = {
     total_investment: userPortfolio.total_investment,

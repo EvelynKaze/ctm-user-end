@@ -11,9 +11,10 @@ import { useRouter } from "next/navigation";
 import { useAppDispatch } from "@/store/hook";
 import { toast } from "sonner"
 import { TradeFormModal } from "./user-deposit/trade-modal";
-import { useUser } from "@clerk/nextjs";
 import { fetchTrades } from "@/app/actions/fetch-trade";
 import { createCopyTrade } from "@/app/actions/copytrade";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 
 export function CopyTradingOptions({ portfolio }: 
@@ -25,7 +26,7 @@ export function CopyTradingOptions({ portfolio }:
     const [open, setOpen] = useState(false);
     const [selectedTrade, setSelectedTrade] = useState<CopyTradingOption | null>(null);
     const dispatch = useAppDispatch();
-    const { user } = useUser()
+    const { userData } = useSelector((state: RootState) => state.user);
     const router = useRouter();
 
     useEffect(() => {
@@ -88,8 +89,7 @@ export function CopyTradingOptions({ portfolio }:
           data: selectedTrade, 
           trade_title: selectedTrade.trade_title,
           trade_duration: selectedTrade?.trade_duration,
-          user_id: user?.id, 
-          full_name: user?.fullName,
+          user: userData?._id, 
           initial_investment: amount,
           trade_token: "fromBalance",
           trade_token_address: "fromBalance",

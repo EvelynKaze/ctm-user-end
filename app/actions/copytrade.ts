@@ -1,3 +1,7 @@
+"use server";
+
+const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+
 export const createCopyTrade = async ({ 
   data, 
   initial_investment,
@@ -6,8 +10,7 @@ export const createCopyTrade = async ({
   trade_token_address, 
   trade_status,
   trade_duration,
-  user_id,
-  full_name,
+  user,
 }: {
   data: {
     trade_min: number;
@@ -22,8 +25,7 @@ export const createCopyTrade = async ({
   trade_token_address: string;
   trade_duration: number;
   trade_status: string;
-  user_id: string | null | undefined;
-  full_name: string | null | undefined;
+  user: string | null | undefined;
 }) => {
   // Calculate profit/loss ratio
   const trade_profit_loss = data.trade_roi_max !== 0 
@@ -32,6 +34,7 @@ export const createCopyTrade = async ({
 
   const copyTradePayload = data && trade_title?.trim() !== "" 
     ? {
+      user,
       trade_title,
       trade_min: data.trade_min,
       trade_max: data.trade_max,
@@ -47,23 +50,37 @@ export const createCopyTrade = async ({
       trade_token,
       trade_token_address,
       trade_status,
-      user_id,
-      full_name
     } 
     : null;
 
   try {
-    const response = await fetch("/api/copytrade-purchase", {
+    if (!copyTradePayload) {
+      throw new Error("Invalid copy trade data");
+    }
+
+    const url = `${apiUrl}/copytrade-purchases`;
+    
+    const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(copyTradePayload),
+      cache: 'no-store',
     });
 
-    if (!response.ok) throw new Error("Failed to create copy trade");
-    console.log("Copy trade created successfully", response);
-    return await response.json();
+    if (!response.ok) {
+      console.error(`Failed to create copy trade: ${response.status} ${response.statusText}`);
+      return null;
+    }
+
+    const result = await response.json();
+    
+    if (!result) {
+      throw new Error("Invalid response format");
+    }
+
+    return result;
   } catch (error) {
-    console.error("Error in createCopyTrade:", error);
-    throw error;
+    console.error("Create Copy Trade API Error:", error);
+    return null;
   }
 };

@@ -1,27 +1,44 @@
+"use server";
+
+const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+
 export const createDeposit = async (data: {
     token_name: string;
     amount: number;
     token_deposit_address: string;
-    user_id: string | null | undefined;
-    full_name: string | null | undefined;
+    user: string | null | undefined;
+    status?: string;
   }) => {
     try {
-      const response = await fetch("/api/deposit", {
+      // Add default status if not provided
+      const depositPayload = {
+        ...data,
+        status: data.status || "pending"
+      };
+
+      const url = `${apiUrl}/deposits`;
+      
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(depositPayload),
+        cache: 'no-store',
       });
-  
-      const result = await response.json();
-  
+
       if (!response.ok) {
-        throw new Error(result.error || "Failed to create transaction");
+        console.error(`Failed to create deposit: ${response.status} ${response.statusText}`);
+        return null;
       }
-  
+
+      const result = await response.json();
+      
+      if (!result) {
+        throw new Error("Invalid response format");
+      }
+
       return result;
     } catch (error) {
-      console.error("Transaction API Error:", error);
-      throw error;
+      console.error("Create Deposit API Error:", error);
+      return null;
     }
-  };
-  
+  };  

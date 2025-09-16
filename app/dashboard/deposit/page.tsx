@@ -12,10 +12,9 @@ import { type Hex, parseEther } from "viem";
 import { type BaseError, useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
 import DepositFunds from "@/components/user-deposit/DepositFunds";
 import type { DepositCryptocurrency} from "@/types";
-import { useUser } from "@clerk/nextjs";
 import { fetchCryptocurrencies } from "@/app/actions/fetch-crypto";
 // import { createStockPurchase } from "@/app/actions/stockPurchase";
-// import { createCopyTrade } from "@/app/actions/copytrade";
+import { createCopyTrade } from "@/app/actions/copytrade";
 import { createDeposit } from "@/app/actions/deposit";
 
 const depositSchema = z.object({
@@ -26,7 +25,7 @@ const depositSchema = z.object({
 type DepositFormData = z.infer<typeof depositSchema>;
 
 const Deposit = () => {
-  const { user } = useUser();
+  const { userData } = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const stockOption = useSelector((state: RootState) => state.stockOption);
   const copyTrade = useSelector((state: RootState) => state.copyTrade);
@@ -89,46 +88,51 @@ const Deposit = () => {
       const handleTransactionSuccess = async () => {
         try {
           const formValues = form.getValues();
+          
+          // Create deposit record for wallet transactions
           await createDeposit({
             token_name: formValues.currency,
             amount: typeof formValues.amount === "number" ? formValues.amount : Number(formValues.amount),
             token_deposit_address: selectedAddress,
-            user_id: user?.id,
-            full_name: user?.fullName,
+            user: userData?._id,
           });
 
-          // Conditionally include stock data if available
-          // if (stockOption?.stock) {
-          //   createStockPurchase({
-          //     data: stockOption?.stock,
-          //     user_id: user?.id,
-          //     stock_initial_value:  stockOption.stock.total,
-          //     full_name: user?.fullName,
-          //     stock_value_entered: form.getValues().amount,
-          //     stock_token: form.getValues().currency,
-          //     stock_quantity: stockOption?.stock?.total,
-          //     stock_status: "pending",
-          //     stock_token_address: selectedAddress,
-          //   })
+          // Create copy trade record if copy trade data exists with valid structure
+          if (copyTrade?.copy && 
+              copyTrade.copy.title && 
+              copyTrade.copy.title.trim() !== "" && 
+              copyTrade.copy.trade_min !== undefined && 
+              copyTrade.copy.trade_max !== undefined &&
+              copyTrade.copy.trade_roi_min !== undefined &&
+              copyTrade.copy.trade_roi_max !== undefined &&
+              copyTrade.copy.trade_risk) {
+            await createCopyTrade({ 
+              data: {
+                trade_min: copyTrade.copy.trade_min,
+                trade_max: copyTrade.copy.trade_max,
+                trade_roi_min: copyTrade.copy.trade_roi_min,
+                trade_roi_max: copyTrade.copy.trade_roi_max,
+                trade_risk: copyTrade.copy.trade_risk,
+              }, 
+              trade_title: copyTrade.copy.title,
+              user: userData?._id, 
+              initial_investment: form.getValues().amount,
+              trade_token: form.getValues().currency,
+              trade_token_address: selectedAddress,
+              trade_duration: copyTrade.copy.trade_duration || 30,
+              trade_status: "pending"              
+            });
+          }
+
+          // TODO: Add stock purchase logic here if needed
+          // if (stockOption?.stock && stockOption.stock.total > 0) {
+          //   await createStockPurchase({...});
           // }
 
-          // if (copyTrade?.copy) {
-          //   createCopyTrade({ 
-          //     data: copyTrade?.copy, 
-          //     trade_title: copyTrade?.copy.title,
-          //     user_id: user?.id, 
-          //     full_name: user?.fullName,
-          //     initial_investment: form.getValues().amount,
-          //     trade_token: form.getValues().currency,
-          //     trade_token_address: selectedAddress,
-          //     trade_status: "pending"              
-          //   })
-          // }
-
-          console.log("isConfirmed", isConfirmed)
+          toast("Success", { description: "Transaction completed successfully!" });
         } catch (err) {
           const error = err as Error
-          toast("Error", { description: `Failed to create transaction.${error.message}` });
+          toast("Error", { description: `Failed to create transaction: ${error.message}` });
         } finally {
           setIsLoading(false);
           dispatch(clearStockOption());
@@ -137,7 +141,7 @@ const Deposit = () => {
       };
       handleTransactionSuccess();
     }
-  }, [isConfirmed, copyTrade.copy, dispatch, form, user?.fullName, user?.id, selectedAddress, stockOption.stock]);
+  }, [isConfirmed, copyTrade.copy, dispatch, form, userData?._id, selectedAddress, stockOption.stock]);
 
 
   const handleCurrencyChange = (currency: string) => {

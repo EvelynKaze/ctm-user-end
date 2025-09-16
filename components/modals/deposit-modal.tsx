@@ -17,18 +17,29 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
+import { createDeposit } from "@/app/actions/deposit";
+import { createCopyTrade } from "@/app/actions/copytrade";
+import { toast } from "sonner";
 
 const DepositModal: React.FC = () => {
   const dispatch = useDispatch();
   const { isOpen, modalProps } = useSelector((state: RootState) => state.modal);
-  const { address, currency, amount } = modalProps;
+  const { address, currency, amount, copyTradeData, userData } = modalProps;
+  // stockOptionData can be used later for stock purchases
   const isDesktop = useMediaQuery("(min-width: 768px)")
 
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
   const [copied, setCopied] = useState(false);
+  const [depositCreated, setDepositCreated] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      // Reset states when modal closes
+      setDepositCreated(false);
+      setCopied(false);
+      setTimeLeft(600);
+      return;
+    }
 
     const timer = setInterval(() => {
       setTimeLeft((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
@@ -42,8 +53,63 @@ const DepositModal: React.FC = () => {
       await navigator.clipboard.writeText(address);
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
+      
+      // Create the deposit record when user copies the address (indicating intent to deposit)
+      if (!depositCreated) {
+        await createDepositRecord();
+      }
     } catch (err) {
       console.error("Failed to copy address:", err);
+    }
+  };
+
+  const createDepositRecord = async () => {
+    try {
+      // Create the deposit record
+      await createDeposit({
+        token_name: currency,
+        amount: amount,
+        token_deposit_address: address,
+        user: userData?._id,
+      });
+
+      // Create copy trade record if copy trade data exists with valid structure
+      if (copyTradeData && 
+          copyTradeData.title && 
+          copyTradeData.title.trim() !== "" && 
+          copyTradeData.trade_min !== undefined && 
+          copyTradeData.trade_max !== undefined &&
+          copyTradeData.trade_roi_min !== undefined &&
+          copyTradeData.trade_roi_max !== undefined &&
+          copyTradeData.trade_risk) {
+        await createCopyTrade({ 
+          data: {
+            trade_min: copyTradeData.trade_min,
+            trade_max: copyTradeData.trade_max,
+            trade_roi_min: copyTradeData.trade_roi_min,
+            trade_roi_max: copyTradeData.trade_roi_max,
+            trade_risk: copyTradeData.trade_risk,
+          }, 
+          trade_title: copyTradeData.title,
+          user: userData?._id,
+          initial_investment: amount,
+          trade_token: currency,
+          trade_token_address: address,
+          trade_duration: copyTradeData.trade_duration || 30,
+          trade_status: "pending"              
+        });
+      }
+
+      // TODO: Add stock purchase logic here if needed
+      // if (stockOptionData) {
+      //   await createStockPurchase({...});
+      // }
+
+      setDepositCreated(true);
+      toast.success("Deposit request created successfully!");
+    } catch (error) {
+      console.error("Error creating deposit record:", error);
+      toast.error("Failed to create deposit record");
     }
   };
 
