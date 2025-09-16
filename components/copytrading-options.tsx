@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { CopyTradingOption } from "@/types/dashboard";
 import { useState, useEffect } from "react";
 import { setCopyTrade } from "@/store/copyTradeSlice";
@@ -118,7 +119,14 @@ export function CopyTradingOptions({ portfolio }:
             <ScrollArea className="h-[400px] pr-2">
               <div className="grid gap-4">
                 {trades?.map((trade) => (
-                  <Card key={trade._id} className="flex flex-col">
+                  <Card key={trade._id} className={`flex flex-col relative ${trade?.isRecommended ? 'ring-2 ring-appGold-500 border-appGold-300' : ''}`}>
+                    {trade?.isRecommended && (
+                      <div className="absolute -top-2 right-20 rounded-lg z-10 bg-appGold200">
+                        <Badge className="bg-appGold-500 text-white flex items-center gap-1 px-2 py-1">
+                          Recommended
+                        </Badge>
+                      </div>
+                    )}
                     <CardHeader className="flex-1">
                       <h3 className="text-2xl font-bold text-center">{trade?.trade_title}</h3>
                       <p className="text-center text-muted-foreground">{trade?.trade_description}</p>

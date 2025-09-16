@@ -1,16 +1,10 @@
 "use client";
 import { CopyTradingOptions } from "@/components/copytrading-options";
 import { StatsCards } from "@/components/stats-cards";
-import { useDispatch } from "react-redux";
-import TradingViewWidget from "@/components/TradingViewWidget"
+import { TradingViewChart } from "@/components/TradingViewChart";
+import { MobileTabView } from "@/components/mobile-tab-view";
 import { useEffect, useState } from "react";
-import { clearStockOption } from "@/store/stockOptionsSlice";
-import { clearCopyTrade } from "@/store/copyTradeSlice";
 import { useUser } from "@clerk/nextjs";
-import { fetchTransactions } from "@/app/actions/fetchTransactions";
-import { Live, Transaction } from "@/types";
-import { toast } from "sonner";
-import { updateUserMetadata } from "@/app/actions/role";
 import { getUserByClerkId } from "@/app/actions/user/getUserByClerkId";
 import { StockTradingTable } from "@/components/stock-trading-table";
 
@@ -154,11 +148,19 @@ export default function UserDashboard() {
     <div className="flex flex-col lg:flex-row h-full flex-1 gap-6">
       <div className="flex-1 h-full overflow-y-scroll space-y-6">
         <StatsCards stats={stats} />
-        <TradingViewWidget />
-        {/* <StockOptions portfolio={userPortfolio} /> */}
-        <StockTradingTable />
+        <TradingViewChart />
+        
+        {/* Mobile Tab View - Shows after TradingView on mobile */}
+        <MobileTabView portfolio={userPortfolio} />
+        
+        {/* Desktop Only - Stock Trading Table */}
+        <div className="hidden lg:block">
+          <StockTradingTable />
+        </div>
       </div>
-      <div className="w-full lg:w-80 space-y-6">
+      
+      {/* Desktop Only - Copy Trading Options Sidebar */}
+      <div className="hidden lg:block w-full lg:w-80 space-y-6">
         <CopyTradingOptions 
           portfolio={userPortfolio} 
         />

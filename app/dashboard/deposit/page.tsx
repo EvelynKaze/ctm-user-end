@@ -46,7 +46,18 @@ const Deposit = () => {
     const getCryptocurrencies = async () => {
       try {
         const response = await fetchCryptocurrencies();
-        setCryptocurrencies(response);
+        if (response && response.success && response.data) {
+          // Transform the API response to match the expected format
+          const transformedCryptocurrencies = response.data.map((crypto) => ({
+            id: crypto._id,
+            name: crypto.token_name,
+            value: crypto.token_symbol,
+            address: crypto.token_address,
+          }));
+          setCryptocurrencies(transformedCryptocurrencies);
+        } else {
+          throw new Error("Failed to fetch cryptocurrency data");
+        }
       } catch (error) {
         console.error("Error fetching cryptocurrencies:", error);
         toast("Error", {

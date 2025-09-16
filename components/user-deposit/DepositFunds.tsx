@@ -36,14 +36,14 @@ import { useUser } from "@clerk/nextjs";
 
 interface DepositFundsProps {
   form: UseFormReturn<{ currency: string; amount: number }, unknown, { currency: string; amount: number }>;
-  cryptocurrencies: Array<{ id: string; value: string; name: string }>;
+  cryptocurrencies: Array<{ id: string; name: string; value: string; address: string }>;
   selectedAddress: string;
   handleCurrencyChange: (value: string) => void;
   onSubmit: (data: { currency: string; amount: number }) => void;
   isLoading: boolean;
-  stockOption: { stock: { total: number; symbol: string; name: string; price: number; change: number; isMinus: boolean; } };
-  copyTrade: { copy: { title: string; trade_min: number; trade_max: number; trade_risk: string;  trade_roi_min: number; trade_roi_max: number; } };
-  baseError: { shortMessage: string };
+  stockOption?: { stock?: { total: number; symbol: string; name: string; price: number; change: number; isMinus: boolean; } };
+  copyTrade?: { copy?: { title: string; trade_min: number; trade_max: number; trade_risk: string;  trade_roi_min: number; trade_roi_max: number; } };
+  baseError?: { shortMessage: string };
   tranHash: string;
 }
 
@@ -178,7 +178,7 @@ const DepositFunds: React.FC<DepositFundsProps> = ({
                       </FormItem>
                     )}
                   />
-                  {stockOption?.stock?.total !== 0 && Object.keys(stockOption?.stock).length > 0 && (
+                  {stockOption?.stock?.total !== 0 && stockOption?.stock && Object.keys(stockOption.stock).length > 0 && (
                     <div>
                       <FormLabel>Total Amount to Deposit</FormLabel>
                       <Input type="number" value={stockOption?.stock?.total} disabled className="mb-2" />
@@ -187,7 +187,7 @@ const DepositFunds: React.FC<DepositFundsProps> = ({
                       </p>
                     </div>
                   )}
-                  {copyTrade?.copy?.title !== "" && Object.keys(copyTrade?.copy).length > 0 && (
+                  {copyTrade?.copy?.title !== "" && copyTrade?.copy && Object.keys(copyTrade.copy).length > 0 && (
                     <div>
                       <FormLabel>Plan</FormLabel>
                       {/* <Input type="text" value={copyTrade?.copy?.title} disabled className="mb-2" /> */}
