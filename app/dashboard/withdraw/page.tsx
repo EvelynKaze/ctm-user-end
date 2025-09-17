@@ -46,10 +46,7 @@ type WithdrawalFormValues = z.infer<typeof withdrawalSchema>;
 const Withdrawal = () => {
     const { user } = useUser();
     const dispatch = useDispatch();
-    const [cryptocurrencies, setCryptocurrencies] = useState<
-        { name: string; value: string; address: string }[]
-    >([]);
-
+    const [cryptocurrencies, setCryptocurrencies] = useState<{ id: string; name: string; value: string; address: string }[]>([]);
     const form = useForm<WithdrawalFormValues>({
         resolver: zodResolver(withdrawalSchema),
         defaultValues: {
@@ -63,21 +60,32 @@ const Withdrawal = () => {
     // Fetch cryptocurrencies from Appwrite database
     useEffect(() => {
         const getCryptocurrencies = async () => {
-            try {
-              const response = await fetchCryptocurrencies();
-              setCryptocurrencies(response);
-            } catch (error) {
-              console.error("Error fetching cryptocurrencies:", error);
-              toast("Error", {
-                description: "Failed to fetch cryptocurrency data.",
-              });
+          try {
+            const response = await fetchCryptocurrencies();
+            if (response && response.success && response.data) {
+              // Transform the API response to match the expected format
+              const transformedCryptocurrencies = response.data.map((crypto) => ({
+                id: crypto._id,
+                name: crypto.token_name,
+                value: crypto.token_symbol,
+                address: crypto.token_address,
+              }));
+              setCryptocurrencies(transformedCryptocurrencies);
+            } else {
+              throw new Error("Failed to fetch cryptocurrency data");
             }
-          };
-      
+          } catch (error) {
+            console.error("Error fetching cryptocurrencies:", error);
+            toast("Error", {
+              description: "Failed to fetch cryptocurrency data.",
+            });
+          }
+        };
+    
         getCryptocurrencies();
         dispatch(clearStockOption());
         dispatch(clearCopyTrade());
-    }, [dispatch]);
+      }, [dispatch]);
 
     const onSubmit = async (data: WithdrawalFormValues) => {
         try {
