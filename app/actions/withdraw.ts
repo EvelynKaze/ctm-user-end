@@ -1,27 +1,44 @@
-export const withdraw = async (
-    currency: string, 
-    amount: number, 
-    address: string, 
-    user_id: string, 
-    full_name: string
-  ) => {
+"use server";
+
+const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+
+export const withdraw = async (withdrawData: {
+    token_name: string;
+    amount: number;
+    token_withdraw_address: string;
+    user: string | null | undefined;
+    status?: string;
+  }) => {
     try {
-      const response = await fetch("/api/withdraw", {
+      // Add default status as pending
+      const withdrawPayload = {
+        ...withdrawData,
+        status: withdrawData.status || "pending"
+      };
+
+      const url = `${apiUrl}/withdraws`;
+      
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currency, amount, address, user_id, full_name }),
+        body: JSON.stringify(withdrawPayload),
+        cache: 'no-store',
       });
-  
-      const result = await response.json();
-  
+
       if (!response.ok) {
-        throw new Error(result.error || "Failed to process withdrawal");
+        console.error(`Failed to create withdrawal: ${response.status} ${response.statusText}`);
+        return null;
       }
-  
-      return result.transaction;
+
+      const result = await response.json();
+      
+      if (!result) {
+        throw new Error("Invalid response format");
+      }
+
+      return result;
     } catch (error) {
       console.error("Withdraw API Error:", error);
-      throw error;
+      return null;
     }
-  };
-  
+  };  

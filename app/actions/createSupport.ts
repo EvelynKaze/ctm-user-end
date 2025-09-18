@@ -1,5 +1,9 @@
+"use server";
+
+const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+
 export const createSupport = async (supportData: {
-    user_id: string | null | undefined;
+    user: string | null | undefined;
     full_name: string | null | undefined;
     email: string | undefined;
     title: string;
@@ -7,22 +11,29 @@ export const createSupport = async (supportData: {
     priority: string;
   }) => {
     try {
-      const response = await fetch("/api/create-support", {
+      const url = `${apiUrl}/user-support`;
+      
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(supportData),
+        cache: 'no-store',
       });
-  
-      const result = await response.json();
-  
+
       if (!response.ok) {
-        throw new Error(result.error || "Failed to create support ticket");
+        console.error(`Failed to create support ticket: ${response.status} ${response.statusText}`);
+        return null;
       }
-  
-      return result.support;
+
+      const result = await response.json();
+      
+      if (!result) {
+        throw new Error("Invalid response format");
+      }
+
+      return result;
     } catch (error) {
       console.error("Create Support API Error:", error);
-      throw error;
+      return null;
     }
-  };
-  
+  };  

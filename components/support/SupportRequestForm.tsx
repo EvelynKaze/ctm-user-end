@@ -4,24 +4,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PriorityBadge } from "./PriorityBadge"
-// import { databases, ID, Permission, Role } from "@/lib/appwrite";
 import { toast } from "sonner"
-// import ENV from "@/constants/env";
 import { createSupport } from "@/app/actions/createSupport"
 
 interface SupportRequestFormProps {
     email?: string
     full_name?: string | null
-    user_id?: string | null
+    user?: string | null
 }
 
-export default function SupportRequestForm({ full_name, email, user_id}: SupportRequestFormProps) {
+export default function SupportRequestForm({ full_name, email, user}: SupportRequestFormProps) {
     const [title, setTitle] = useState("")
     const [message, setMessage] = useState("")
-    const [priority, setPriority] = useState<"urgent" | "high" | "normal" | "low">("normal")
+    const [priority, setPriority] = useState<"high" | "medium" | "low">("medium")
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -31,7 +28,7 @@ export default function SupportRequestForm({ full_name, email, user_id}: Support
         
         try {
           const supportData = {
-            user_id,
+            user,
             full_name,
             email,
             title,
@@ -40,15 +37,25 @@ export default function SupportRequestForm({ full_name, email, user_id}: Support
           };
       
           const support = await createSupport(supportData);
-          console.log("Support opened", support);
-      
-          toast("Support Ticket Opened", {
-            description: "We'll send you an email once the issue has been resolved.",
-          });
+          
+          if (support) {
+            console.log("Support opened", support);
+            
+            // Reset form on success
+            setTitle("");
+            setMessage("");
+            setPriority("medium");
+            
+            toast("Support Ticket Opened", {
+              description: "We'll send you an email once the issue has been resolved.",
+            });
+          } else {
+            throw new Error("Failed to create support ticket");
+          }
         } catch (error) {
+          console.error("Support ticket error:", error);
           toast("Support Ticket Failed", {
-            description:
-              (error as Error).message || "There was an error opening the support ticket. Please try again.",
+            description: "There was an error opening the support ticket. Please try again.",
           });
         } finally {
           setIsLoading(false);

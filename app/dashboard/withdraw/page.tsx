@@ -27,11 +27,11 @@ import { motion } from "framer-motion";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import WithdrawalModal from "@/components/modals/withdrawal-modal";
-import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner"
 import { clearStockOption } from "@/store/stockOptionsSlice";
 import { clearCopyTrade } from "@/store/copyTradeSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 import { fetchCryptocurrencies } from "@/app/actions/fetch-crypto";
 import { withdraw } from "@/app/actions/withdraw";
 
@@ -44,7 +44,7 @@ const withdrawalSchema = z.object({
 type WithdrawalFormValues = z.infer<typeof withdrawalSchema>;
 
 const Withdrawal = () => {
-    const { user } = useUser();
+    const { userData } = useSelector((state: RootState) => state.user);
     const dispatch = useDispatch();
     const [cryptocurrencies, setCryptocurrencies] = useState<{ id: string; name: string; value: string; address: string }[]>([]);
     const form = useForm<WithdrawalFormValues>({
@@ -89,15 +89,33 @@ const Withdrawal = () => {
 
     const onSubmit = async (data: WithdrawalFormValues) => {
         try {
-          const transaction = await withdraw(data.currency, data.amount, data.address, user?.id || "", user?.fullName || "");
+          const withdrawPayload = {
+            token_name: data.currency,
+            amount: data.amount,
+            token_withdraw_address: data.address,
+            user: userData?._id,
+          };
+
+          const transaction = await withdraw(withdrawPayload);
       
-          toast("Success", {
-            description: "Withdrawal request created successfully.",
-          });
-      
-          console.log("Withdrawal Transaction:", transaction);
+          if (transaction) {
+            toast("Success", {
+              description: "Withdrawal request created successfully.",
+            });
+            
+            // Reset form on success
+            form.reset({
+              currency: "",
+              amount: 0,
+              address: "",
+            });
+            
+            console.log("Withdrawal Transaction:", transaction);
+          } else {
+            throw new Error("Failed to create withdrawal request");
+          }
         } catch (error) {
-            console.error("Error creating withdrawal:", error)
+          console.error("Error creating withdrawal:", error);
           toast("Error", {
             description: "Failed to create withdrawal transaction.",
           });

@@ -7,27 +7,39 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import { SupportRequestDetails } from "./SupportRequestDetails"
 import { TableSkeleton } from "@/skeletons"
-import { useUser } from "@clerk/nextjs"
+import { useSelector } from "react-redux"
+import { RootState } from "@/store/store"
 import { fetchSupport } from "@/app/actions/fetchSupport"
 
 
 export function SupportRequestList() {
     const [selectedRequest, setSelectedRequest] = useState<SupportRequest | null>(null)
     const [userRequests, setUserRequests] = useState<SupportRequest[]>([])
-    const { user } = useUser()
-    const user_id = user?.id || "";
+    const { userData } = useSelector((state: RootState) => state.user)
+    const user_id = userData?._id || "";
     const isMobile = useMediaQuery("(max-width: 640px)")
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {
         const getSupportRequests = async () => {
+          if (!user_id) {
+            console.log("No user ID available, skipping support fetch");
+            return;
+          }
+          
           setIsLoading(true);
           try {
             const supportData = await fetchSupport(user_id);
-            setUserRequests(supportData);
-            console.log("Successfully fetched support", supportData);
+            if (supportData) {
+              setUserRequests(supportData);
+              console.log("Successfully fetched support", supportData);
+            } else {
+              setUserRequests([]);
+              console.log("No support data returned");
+            }
           } catch (error) {
             console.error("Failed to fetch support requests:", error);
+            setUserRequests([]);
           } finally {
             setIsLoading(false);
           }

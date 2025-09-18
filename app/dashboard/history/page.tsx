@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, Key } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button";
@@ -32,28 +32,31 @@ import { ArrowUpDown, Download } from "lucide-react";
 import { TableSkeleton } from "@/skeletons";
 import { clearStockOption } from "@/store/stockOptionsSlice";
 import { clearCopyTrade } from "@/store/copyTradeSlice";
-import { useDispatch } from "react-redux";
-import { useUser } from "@clerk/nextjs";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 import { fetchCryptocurrencies } from "@/app/actions/fetch-crypto";
 import { fetchTransactions } from "@/app/actions/fetchTransactions";
 
 interface Transaction {
-  $id: string;
-  $createdAt: string;
-  type: string;
+  _id: string;
+  createdAt: string;
+  type: "Deposit" | "Withdrawal";
   amount: number;
   token_name: string;
-  currency: string;
   status: string;
   isDeposit?: boolean;
-  date: string;
+  isWithdraw?: boolean;
+  token_deposit_address?: string;
+  token_withdraw_address?: string;
+  user: string;
+  updatedAt: string;
 }
 
 interface Token {
-  id: Key | null | undefined;
-  $id?: string;
+  _id: string;
   token_name: string;
   token_symbol: string;
+  token_address: string;
 }
 
 interface SortConfig {
@@ -68,13 +71,12 @@ interface FilterConfig {
 }
 
 const TransactionHistory = () => {
-//   const { profile } = useProfile();
   const dispatch = useDispatch();
-  const { user } = useUser()
+  const { userData } = useSelector((state: RootState) => state.user);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [tokens, setTokens] = useState<Token[]>([]);
   const [sortConfig, setSortConfig] = useState<SortConfig>({
-    key: "date",
+    key: "createdAt",
     direction: "desc",
   });
   const [filter, setFilter] = useState<FilterConfig>({
@@ -87,27 +89,45 @@ const TransactionHistory = () => {
   const itemsPerPage = 5;
 
   useEffect(() => {
-    // Fetch transactions from Appwrite
+    // Fetch transactions from backend API
     const getTransactions = async () => {
-        if (!user?.id) return;
+        if (!userData?._id) return;
         
         setIsLoading(true);
         try {
-          const transactions = await fetchTransactions(user.id);
-          setTransactions(transactions);
-          console.log("Transactions:", transactions);
+          const { deposits, withdraws } = await fetchTransactions(userData._id);
+          
+          // Combine and format deposits and withdrawals
+          const formattedTransactions: Transaction[] = [
+            ...deposits.map((deposit: Omit<Transaction, 'type'>) => ({
+              ...deposit,
+              type: "Deposit" as const,
+              isDeposit: deposit.isDeposit || true,
+            })),
+            ...withdraws.map((withdraw: Omit<Transaction, 'type'>) => ({
+              ...withdraw,
+              type: "Withdrawal" as const,
+              isWithdraw: withdraw.isWithdraw || true,
+            })),
+          ];
+          
+          setTransactions(formattedTransactions);
+          console.log("Transactions:", formattedTransactions);
         } catch (error) {
           console.error("Error fetching transactions:", error);
+          setTransactions([]);
         } finally {
           setIsLoading(false);
         }
       };
 
-    // Fetch tokens from Appwrite
+    // Fetch tokens from backend API
     const fetchTokens = async () => {
       try {
         const response = await fetchCryptocurrencies();
-        setTokens(response as unknown as Token[]);
+        if (response && response.success && response.data) {
+          setTokens(response.data);
+        }
       } catch (error) {
         console.error("Error fetching tokens:", error);
       }
@@ -117,7 +137,7 @@ const TransactionHistory = () => {
     fetchTokens();
     dispatch(clearStockOption());
     dispatch(clearCopyTrade());
-  }, [user, dispatch]);
+  }, [userData?._id, dispatch]);
 
   const handleSort = (key: keyof Transaction) => {
     if (!sortConfig || !transactions) {
@@ -145,7 +165,7 @@ const TransactionHistory = () => {
   const filteredTransactions = transactions.filter((transaction) => {
     return (
       (filter.type === "all" || transaction.type === filter.type) &&
-      (filter.currency === "all" || transaction.currency === filter.currency) &&
+      (filter.currency === "all" || transaction.token_name === filter.currency) &&
       (filter.status === "all" || transaction.status === filter.status)
     );
   });
@@ -186,7 +206,7 @@ const TransactionHistory = () => {
             </CardTitle>
             <Button
               onClick={handleDownload}
-              className="w-full w-72 text-appDarkCard sm:w-auto bg-appCardGold"
+              className="w-full sm:w-auto text-appDarkCard bg-appCardGold"
             >
               <Download className="h-4 w-4 mr-2" />
               <span>Download CSV</span>
@@ -217,7 +237,7 @@ const TransactionHistory = () => {
                 <SelectContent>
                   <SelectItem value="all">All Currencies</SelectItem>
                   {tokens?.map((token) => (
-                    <SelectItem key={token.id} value={token.token_symbol}>
+                    <SelectItem key={token._id} value={token.token_symbol}>
                       {token.token_name}
                     </SelectItem>
                   ))}
@@ -272,11 +292,11 @@ const TransactionHistory = () => {
                         )}
                       </TableHead>
                       <TableHead
-                        onClick={() => handleSort("currency")}
+                        onClick={() => handleSort("token_name")}
                         className="cursor-pointer"
                       >
                         Currency
-                        {sortConfig.key === "currency" && (
+                        {sortConfig.key === "token_name" && (
                           <ArrowUpDown className="ml-2 h-4 w-4 inline" />
                         )}
                       </TableHead>
@@ -290,11 +310,11 @@ const TransactionHistory = () => {
                         )}
                       </TableHead>
                       <TableHead
-                        onClick={() => handleSort("date")}
+                        onClick={() => handleSort("createdAt")}
                         className="cursor-pointer"
                       >
                         Date
-                        {sortConfig.key === "date" && (
+                        {sortConfig.key === "createdAt" && (
                           <ArrowUpDown className="ml-2 h-4 w-4 inline" />
                         )}
                       </TableHead>
@@ -302,7 +322,7 @@ const TransactionHistory = () => {
                   </TableHeader>
                   <TableBody>
                     {paginatedTransactions?.map((transaction) => (
-                      <TableRow key={transaction.$id}>
+                      <TableRow key={transaction._id}>
                         <TableCell className="font-medium">
                           {transaction.type}
                         </TableCell>
@@ -322,7 +342,7 @@ const TransactionHistory = () => {
                           </span>
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {formatDate(transaction?.$createdAt)}
+                          {formatDate(transaction?.createdAt)}
                         </TableCell>
                       </TableRow>
                     ))}

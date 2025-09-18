@@ -1,22 +1,38 @@
+"use server";
+
+const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+
 export const fetchSupport = async (user_id: string) => {
     try {
-      if (!user_id) throw new Error("User ID is required");
-  
-      const response = await fetch(`/api/fetch-support?user_id=${user_id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-  
-      const result = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to fetch support requests");
+      if (!user_id) {
+        console.error("User ID is required for fetching support requests");
+        return null;
       }
   
-      return result.supportRequests;
+      const url = `${apiUrl}/user-support/user/${user_id}`;
+      
+      const response = await fetch(url, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        cache: 'no-store',
+      });
+  
+      if (!response.ok) {
+        console.error(`Failed to fetch support requests: ${response.status} ${response.statusText}`);
+        return null;
+      }
+
+      const result = await response.json();
+      
+      if (!result || !result.success) {
+        console.error("Invalid response format from support API");
+        return null;
+      }
+  
+      return result.data || [];
     } catch (error) {
       console.error("Fetch Support API Error:", error);
-      throw error;
+      return null;
     }
   };
   

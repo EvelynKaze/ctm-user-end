@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/dialog"
 import SupportRequestForm from "./SupportRequestForm"
 import { useMediaQuery } from "@/hooks/useMediaQuery"
-import { useUser } from "@clerk/nextjs"
+import { useSelector } from "react-redux"
+import { RootState } from "@/store/store"
 
 
 
@@ -34,16 +35,16 @@ interface ContactSupportProps {
 export default function ContactSupport({ children }: ContactSupportProps) {
     const [isOpen, setIsOpen] = useState(false)
     const isMobile = useMediaQuery("(max-width: 640px)")
-    const { user } = useUser()
+    const { userData } = useSelector((state: RootState) => state.user)
 
 
     const Content = (
         <>
             <div className="px-4 py-2">
                 <SupportRequestForm
-                    user_id={user?.id}
-                    email={user?.emailAddresses[0].emailAddress}
-                    full_name={user?.fullName}
+                    user={userData?._id}
+                    email={userData?.email}
+                    full_name={userData?.fullName}
                 />
             </div>
         </>
