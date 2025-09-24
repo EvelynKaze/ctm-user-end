@@ -8,7 +8,7 @@ export interface SupportRequest {
     email: string
     full_name: string
     status: "open" | "in-progress" | "resolved"
-    priority: "urgent" | "high" | "normal" | "low"
+    priority: "high" | "medium" | "low"
     createdAt: string
     updatedAt: string
 }

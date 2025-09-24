@@ -4,17 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { clearStockOption } from "@/store/stockOptionsSlice";
-import { clearCopyTrade } from "@/store/copyTradeSlice";
 import { type Hex, parseEther } from "viem";
 import { type BaseError, useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
 import DepositFunds from "@/components/user-deposit/DepositFunds";
 import type { DepositCryptocurrency} from "@/types";
 import { fetchCryptocurrencies } from "@/app/actions/fetch-crypto";
-// import { createStockPurchase } from "@/app/actions/stockPurchase";
-import { createCopyTrade } from "@/app/actions/copytrade";
 import { createDeposit } from "@/app/actions/deposit";
 
 const depositSchema = z.object({
@@ -26,9 +22,6 @@ type DepositFormData = z.infer<typeof depositSchema>;
 
 const Deposit = () => {
   const { userData } = useSelector((state: RootState) => state.user);
-  const dispatch = useDispatch();
-  const stockOption = useSelector((state: RootState) => state.stockOption);
-  const copyTrade = useSelector((state: RootState) => state.copyTrade);
   const { data: hash, error, sendTransaction } = useSendTransaction();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
   const [cryptocurrencies, setCryptocurrencies] = useState<{ id: string; name: string; value: string; address: string }[]>([]);
@@ -97,51 +90,17 @@ const Deposit = () => {
             user: userData?._id,
           });
 
-          // Create copy trade record if copy trade data exists with valid structure
-          if (copyTrade?.copy && 
-              copyTrade.copy.title && 
-              copyTrade.copy.title.trim() !== "" && 
-              copyTrade.copy.trade_min !== undefined && 
-              copyTrade.copy.trade_max !== undefined &&
-              copyTrade.copy.trade_roi_min !== undefined &&
-              copyTrade.copy.trade_roi_max !== undefined &&
-              copyTrade.copy.trade_risk) {
-            await createCopyTrade({ 
-              data: {
-                trade_min: copyTrade.copy.trade_min,
-                trade_max: copyTrade.copy.trade_max,
-                trade_roi_min: copyTrade.copy.trade_roi_min,
-                trade_roi_max: copyTrade.copy.trade_roi_max,
-                trade_risk: copyTrade.copy.trade_risk,
-              }, 
-              trade_title: copyTrade.copy.title,
-              user: userData?._id, 
-              initial_investment: form.getValues().amount,
-              trade_token: form.getValues().currency,
-              trade_token_address: selectedAddress,
-              trade_duration: copyTrade.copy.trade_duration || 30,
-              trade_status: "pending"              
-            });
-          }
-
-          // TODO: Add stock purchase logic here if needed
-          // if (stockOption?.stock && stockOption.stock.total > 0) {
-          //   await createStockPurchase({...});
-          // }
-
           toast("Success", { description: "Transaction completed successfully!" });
         } catch (err) {
           const error = err as Error
           toast("Error", { description: `Failed to create transaction: ${error.message}` });
         } finally {
           setIsLoading(false);
-          dispatch(clearStockOption());
-          dispatch(clearCopyTrade());
         }
       };
       handleTransactionSuccess();
     }
-  }, [isConfirmed, copyTrade.copy, dispatch, form, userData?._id, selectedAddress, stockOption.stock]);
+  }, [isConfirmed, form, userData?._id, selectedAddress]);
 
 
   const handleCurrencyChange = (currency: string) => {
@@ -158,8 +117,6 @@ const Deposit = () => {
       handleCurrencyChange={handleCurrencyChange}
       onSubmit={onSubmit}
       isLoading={isLoading || isConfirming}
-      stockOption={stockOption}
-      copyTrade={copyTrade}
       baseError={baseError}
       tranHash={tranHash || ""}
     />

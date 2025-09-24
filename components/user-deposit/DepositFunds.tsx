@@ -40,8 +40,6 @@ interface DepositFundsProps {
   handleCurrencyChange: (value: string) => void;
   onSubmit: (data: { currency: string; amount: number }) => void;
   isLoading: boolean;
-  stockOption?: { stock?: { total: number; symbol: string; name: string; price: number; change: number; isMinus: boolean; } };
-  copyTrade?: { copy?: { title: string; trade_min: number; trade_max: number; trade_risk: string;  trade_roi_min: number; trade_roi_max: number; trade_duration: number;} };
   baseError?: { shortMessage: string };
   tranHash: string;
 }
@@ -53,8 +51,6 @@ const DepositFunds: React.FC<DepositFundsProps> = ({
   handleCurrencyChange, 
   onSubmit, 
   isLoading, 
-  stockOption, 
-  copyTrade,
   baseError,
   tranHash
 }) => {
@@ -76,9 +72,6 @@ const DepositFunds: React.FC<DepositFundsProps> = ({
           address: selectedAddress, 
           currency: form.getValues("currency"), 
           amount: form.getValues("amount"),
-          // Pass the trade data to modal for later processing
-          copyTradeData: copyTrade?.copy && Object.keys(copyTrade.copy).length > 0 ? copyTrade.copy : null,
-          stockOptionData: stockOption?.stock && Object.keys(stockOption.stock).length > 0 ? stockOption.stock : null,
           userData: userData
         },
       }));
@@ -151,24 +144,6 @@ const DepositFunds: React.FC<DepositFundsProps> = ({
                       </FormItem>
                     )}
                   />
-                  {stockOption?.stock?.total !== 0 && stockOption?.stock && Object.keys(stockOption.stock).length > 0 && (
-                    <div>
-                      <FormLabel>Total Amount to Deposit</FormLabel>
-                      <Input type="number" value={stockOption?.stock?.total} disabled className="mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        Deposit the amount stated above in crypto to be able to purchase this Stock.
-                      </p>
-                    </div>
-                  )}
-                  {copyTrade?.copy?.title !== "" && copyTrade?.copy && Object.keys(copyTrade.copy).length > 0 && (
-                    <div>
-                      <FormLabel>Plan</FormLabel>
-                      {/* <Input type="text" value={copyTrade?.copy?.title} disabled className="mb-2" /> */}
-                      <p className="text-sm text-muted-foreground">
-                        Deposit ${copyTrade?.copy?.trade_min} in crypto to be able to purchase this Plan.
-                      </p>
-                    </div>
-                  )}
                   <PaymentModal
                       handlePaymentOption={handlePaymentOption}
                       open={open}

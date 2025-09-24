@@ -96,22 +96,16 @@ export default function SupportRequestForm({ full_name, email, user}: SupportReq
                         <SelectValue placeholder="Select priority" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="urgent">
-                            <div className="flex items-center space-x-2">
-                                <PriorityBadge priority="urgent" />
-                                <span>Urgent</span>
-                            </div>
-                        </SelectItem>
                         <SelectItem value="high">
                             <div className="flex items-center space-x-2">
                                 <PriorityBadge priority="high" />
                                 <span>High</span>
                             </div>
                         </SelectItem>
-                        <SelectItem value="normal">
+                        <SelectItem value="medium">
                             <div className="flex items-center space-x-2">
-                                <PriorityBadge priority="normal" />
-                                <span>Normal</span>
+                                <PriorityBadge priority="medium" />
+                                <span>Medium</span>
                             </div>
                         </SelectItem>
                         <SelectItem value="low">
