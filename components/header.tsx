@@ -1,7 +1,7 @@
-import { SignedIn, UserButton } from '@clerk/nextjs'
 import ToggleSidebar from "./toggle-sidebar";
 import { useAccount } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { UserButton } from "./user-button";
 
 interface HeaderProps {
     userName: string | null;
@@ -26,9 +26,10 @@ export function Header({ userName }: HeaderProps){
 
         <ConnectButton />
 
-        <SignedIn>
+        {/* <SignedIn>
           <UserButton />
-        </SignedIn>
+        </SignedIn> */}
+        <UserButton userName={userName} />
       </div>
     </header>
   );

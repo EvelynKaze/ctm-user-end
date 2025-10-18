@@ -1,66 +1,89 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { PlatformCard } from "@/components/platform-card"
+
+const platforms = [
+  {
+    id: "1",
+    name: "Binance",
+    description:
+      "The world's largest cryptocurrency exchange by trading volume. Offers spot trading, futures, and staking.",
+    url: "https://www.binance.com",
+    logo: "/buy-sell/binance-logo.jpg",
+  },
+  {
+    id: "2",
+    name: "Coinbase",
+    description:
+      "User-friendly exchange perfect for beginners. Regulated and secure with a wide selection of cryptocurrencies.",
+    url: "https://www.coinbase.com",
+    logo: "/buy-sell/coinbase-logo.jpg",
+  },
+  {
+    id: "3",
+    name: "Kraken",
+    description:
+      "Advanced trading platform with strong security features. Ideal for experienced traders and institutional investors.",
+    url: "https://www.kraken.com",
+    logo: "/buy-sell/kraken-logo.jpg",
+  },
+  {
+    id: "4",
+    name: "Bybit",
+    description:
+      "Leading derivatives exchange with up to 100x leverage. Fast execution and competitive fees for active traders.",
+    url: "https://www.bybit.com",
+    logo: "/buy-sell/bybit-logo.jpg",
+  },
+  {
+    id: "5",
+    name: "OKX",
+    description:
+      "Global crypto exchange with spot, futures, and options trading. Advanced tools for professional traders.",
+    url: "https://www.okx.com",
+    logo: "/buy-sell/okx-logo.jpg",
+  },
+  {
+    id: "6",
+    name: "Huobi",
+    description:
+      "Established exchange with strong liquidity and diverse trading pairs. Supports multiple fiat currencies.",
+    url: "https://www.huobi.com",
+    logo: "/buy-sell/huobi-logo.jpg",
+  },
+  {
+    id: "7",
+    name: "KuCoin",
+    description: "Community-driven exchange with innovative features and low trading fees. Great for altcoin trading.",
+    url: "https://www.kucoin.com",
+    logo: "/buy-sell/kucoin-logo.jpg",
+  },
+]
 
 export default function BuySellPage() {
   return (
-    <div className="relative h-screen w-full overflow-hidden">
-      {/* Background Cards */}
-      <div className="absolute inset-0 z-0">
-        <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <BackgroundCard key={i} index={i} />
-          ))}
+    <main className="min-h-screen bg-background">
+      <header className="border-b border-border bg-card">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="space-y-4">
+            <h1 className="text-balance text-5xl font-bold tracking-tight text-foreground sm:text-6xl">
+              Buy & Sell Crypto
+            </h1>
+            <p className="text-balance text-xl text-muted-foreground">
+              Explore the world&apos;s leading cryptocurrency exchanges. Choose the platform that best fits your trading
+              needs and start buying or selling crypto today.
+            </p>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Blur Overlay */}
-      <div className="absolute inset-0 z-10 backdrop-blur-xl bg-background/50" />
-
-      {/* Coming Soon Card */}
-      <div className="absolute inset-0 z-20 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-lg">
-          <CardHeader className="text-center">
-            <CardTitle className="text-4xl font-bold tracking-tight">Coming Soon</CardTitle>
-            <CardDescription className="text-lg">We&#39;re working on something exciting. Stay tuned!</CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            {/* <p className="text-muted-foreground">Our new platform is under development and will be launching soon.</p> */}
-            <div className="mt-6 flex justify-center">
-              <div className="inline-flex h-1 w-16 rounded-full bg-primary" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  )
-}
-
-function BackgroundCard({ index }: { index: number }) {
-  // Different heights for visual interest
-  const heights = ["h-48", "h-64", "h-56", "h-72"]
-  const height = heights[index % heights.length]
-
-  // Different colors for visual interest even when blurred
-  const colors = [
-    "bg-red-200",
-    "bg-blue-200",
-    "bg-green-200",
-    "bg-yellow-200",
-    "bg-purple-200",
-    "bg-pink-200",
-    "bg-indigo-200",
-    "bg-teal-200",
-  ]
-  const color = colors[index % colors.length]
-
-  return (
-    <Card className={`${height} ${color} transform transition-transform hover:scale-105`}>
-      <CardHeader>
-        <CardTitle className="text-lg">Card {index + 1}</CardTitle>
-        <CardDescription>Card description</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p>This content will be blurred in the background.</p>
-      </CardContent>
-    </Card>
+      <section className="px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {platforms.map((platform) => (
+              <PlatformCard key={platform.id} platform={platform} />
+            ))}
+          </div>
+        </div>
+      </section>
+    </main>
   )
 }

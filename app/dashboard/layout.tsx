@@ -8,7 +8,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { config } from "@/constants/wagmi";
-import { useUser } from "@clerk/nextjs";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 // export const metadata = {
 //   title: "CopyTradeMarkets: UserDashboard",
@@ -18,8 +19,12 @@ import { useUser } from "@clerk/nextjs";
 const queryClient = new QueryClient();
 
 const Layout = ({ children }: { children?: React.ReactNode }) => {
-  const { user } = useUser();
-  const userName = user?.username || ((user?.firstName?.toLowerCase?.() ?? "") + (user?.lastName?.toLowerCase?.() ?? "")) || null;  
+  const { userData } = useSelector((state: RootState) => state.user);
+  const userName =
+    userData?.username ||
+    ((userData?.firstName?.toLowerCase?.() ?? "") +
+      (userData?.lastName?.toLowerCase?.() ?? "")) ||
+    null;
 
   return (
     <WagmiProvider config={config}>

@@ -12,12 +12,13 @@ import {
 } from "@/components/ui/select";
 import { RefreshCw } from "lucide-react";
 import { TableSkeleton } from "@/skeletons";
-import { useUser } from "@clerk/nextjs";
 import { fetchPurchasedStocks } from "@/app/actions/fetchPurchasedStocks";
 import { createCopyStockTrade } from "@/app/actions/copyStockTrade";
 import { toast } from "sonner"
 import { updateCreateStock } from "@/app/actions/stockPurchase";
 import { StockTable } from "./stocks-purchased-table";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 interface Stock {
   $id: string;
@@ -37,8 +38,9 @@ interface Stock {
 
 const StockPage = () => {
   const [stocks, setStocks] = useState<Stock[]>([]);
-  const { user } = useUser()
-  const user_id = user?.id || "";
+  const user_id = localStorage.getItem("ctm_user_id") || "";
+  const { userData } = useSelector((state: RootState) => state.user);
+  const user_full_name = userData?.fullName || "";
   const [sortConfig, setSortConfig] = useState({
     key: "symbol",
     direction: "asc",
@@ -121,8 +123,8 @@ const StockPage = () => {
         trade_status: "approved",
         trade_profit_loss: stock?.stock_profit_loss,
         trade_win_rate: 0,
-        full_name: user?.fullName,
-        user_id: user?.id
+        full_name: user_full_name,
+        user_id: user_id
       })
       const isTrading: boolean = true
       updateCreateStock(stock?.$id, isTrading)

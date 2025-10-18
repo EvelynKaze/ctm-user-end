@@ -1,7 +1,4 @@
 import { type Metadata } from 'next'
-import {
-  ClerkProvider,
-} from '@clerk/nextjs'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Toaster } from "@/components/ui/sonner"
@@ -29,32 +26,30 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}>
       <Providers>
-            <html lang="en" className="dark">
-              <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                <Script 
-                  src="https://www.cryptohopper.com/widgets/js/script"
-                  strategy="afterInteractive"
-                />
-                {/* Smartsupp live chat: init + loader (appears bottom-right after hydration) */}
-                <Script
-                  id="smartsupp-init"
-                  strategy="afterInteractive"
-                  dangerouslySetInnerHTML={{ __html: `var _smartsupp = _smartsupp || {}; _smartsupp.key = 'baee3d42aec88f6c4bed4fee58ffe2b1b764ec55';` }}
-                />
-                <Script
-                  src="https://www.smartsuppchat.com/loader.js?"
-                  strategy="afterInteractive"
-                />
-                {children}
-                <Toaster />
-                <noscript>
-                  Powered by <a href="https://www.smartsupp.com" target="_blank" rel="noopener noreferrer">Smartsupp</a>
-                </noscript>
-              </body>
-            </html>
+        <html lang="en" className="dark">
+          <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+            <Script 
+              src="https://www.cryptohopper.com/widgets/js/script"
+              strategy="afterInteractive"
+            />
+            {/* Smartsupp live chat: init + loader (appears bottom-right after hydration) */}
+            <Script
+              id="smartsupp-init"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{ __html: `var _smartsupp = _smartsupp || {}; _smartsupp.key = 'baee3d42aec88f6c4bed4fee58ffe2b1b764ec55';` }}
+            />
+            <Script
+              src="https://www.smartsuppchat.com/loader.js?"
+              strategy="afterInteractive"
+            />
+            {children}
+            <Toaster />
+            <noscript>
+              Powered by <a href="https://www.smartsupp.com" target="_blank" rel="noopener noreferrer">Smartsupp</a>
+            </noscript>
+          </body>
+        </html>
       </Providers>
-    </ClerkProvider>
   )
 }

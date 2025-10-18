@@ -1,66 +1,133 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Suspense } from "react"
+import { TradeCard } from "@/components/trade-card"
+import { fetchTrades } from "@/app/actions/fetch-trade"
+import { Skeleton } from "@/components/ui/skeleton"
 
-export default function CopytradePage() {
+// Add this to make the page dynamic
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+// Loading skeleton component
+function TradeCardSkeleton() {
   return (
-    <div className="relative h-screen w-full overflow-hidden">
-      {/* Background Cards */}
-      <div className="absolute inset-0 z-0">
-        <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <BackgroundCard key={i} index={i} />
-          ))}
+    <div className="group relative overflow-hidden rounded-lg border border-border bg-card p-6">
+      <div className="space-y-4">
+        {/* Title skeleton */}
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
         </div>
-      </div>
 
-      {/* Blur Overlay */}
-      <div className="absolute inset-0 z-10 backdrop-blur-xl bg-background/50" />
+        {/* ROI skeleton */}
+        <div className="rounded-lg bg-muted p-3">
+          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="h-6 w-32" />
+        </div>
 
-      {/* Coming Soon Card */}
-      <div className="absolute inset-0 z-20 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-lg">
-          <CardHeader className="text-center">
-            <CardTitle className="text-4xl font-bold tracking-tight">Coming Soon</CardTitle>
-            <CardDescription className="text-lg">We&#39;re working on something exciting. Stay tuned!</CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            {/* <p className="text-muted-foreground">Our new platform is under development and will be launching soon.</p> */}
-            <div className="mt-6 flex justify-center">
-              <div className="inline-flex h-1 w-16 rounded-full bg-primary" />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Investment range skeleton */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-lg bg-muted/50 p-3">
+            <Skeleton className="h-3 w-20 mb-2" />
+            <Skeleton className="h-6 w-24" />
+          </div>
+          <div className="rounded-lg bg-muted/50 p-3">
+            <Skeleton className="h-3 w-20 mb-2" />
+            <Skeleton className="h-6 w-24" />
+          </div>
+        </div>
+
+        {/* Risk and duration skeleton */}
+        <div className="flex items-center justify-between gap-2">
+          <Skeleton className="h-10 w-28" />
+          <Skeleton className="h-10 w-24" />
+        </div>
+
+        {/* Button skeleton */}
+        <Skeleton className="h-11 w-full" />
       </div>
     </div>
   )
 }
 
-function BackgroundCard({ index }: { index: number }) {
-  // Different heights for visual interest
-  const heights = ["h-48", "h-64", "h-56", "h-72"]
-  const height = heights[index % heights.length]
+// Loading grid
+function TradesLoading() {
+  return (
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <TradeCardSkeleton key={i} />
+      ))}
+    </div>
+  )
+}
 
-  // Different colors for visual interest even when blurred
-  const colors = [
-    "bg-red-200",
-    "bg-blue-200",
-    "bg-green-200",
-    "bg-yellow-200",
-    "bg-purple-200",
-    "bg-pink-200",
-    "bg-indigo-200",
-    "bg-teal-200",
-  ]
-  const color = colors[index % colors.length]
+// Trades content component
+async function TradesContent() {
+  const trades = await fetchTrades()
+
+  if (!trades || trades.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="rounded-full bg-muted p-6 mb-4">
+          <svg
+            className="h-12 w-12 text-muted-foreground"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+            />
+          </svg>
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-2">
+          No Trading Strategies Available
+        </h3>
+        <p className="text-muted-foreground max-w-md">
+          There are currently no copy trading options available. Please check back
+          later for new opportunities.
+        </p>
+      </div>
+    )
+  }
 
   return (
-    <Card className={`${height} ${color} transform transition-transform hover:scale-105`}>
-      <CardHeader>
-        <CardTitle className="text-lg">Card {index + 1}</CardTitle>
-        <CardDescription>Card description</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p>This content will be blurred in the background.</p>
-      </CardContent>
-    </Card>
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {trades.map((trade) => (
+        <TradeCard key={trade._id} trade={trade} />
+      ))}
+    </div>
+  )
+}
+
+export default function CopyTradePage() {
+  return (
+    <main className="min-h-screen bg-background">
+      <header className="bg-card">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="space-y-4">
+            <h1 className="text-balance text-5xl font-bold tracking-tight text-foreground sm:text-6xl">
+              Discover Elite Trading Strategies
+            </h1>
+            <p className="text-balance text-xl text-muted-foreground">
+              Access professionally managed trading strategies with proven track
+              records. Start with as little as $500 and grow your portfolio with
+              expert-led copy trading.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <section className="px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <Suspense fallback={<TradesLoading />}>
+            <TradesContent />
+          </Suspense>
+        </div>
+      </section>
+    </main>
   )
 }

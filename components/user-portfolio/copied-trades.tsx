@@ -22,7 +22,6 @@ import {
 import { ArrowUpDown, RefreshCw, TrendingUp, TrendingDown } from "lucide-react";
 import ManageCopyTradingModal from "../modals/manage-copy-trading";
 import { TableSkeleton } from "@/skeletons";
-import { useUser } from "@clerk/nextjs";
 import { fetchCopiedTrades } from "@/app/actions/fetchCopiedTrades";
 
 interface TradePayload {
@@ -46,8 +45,7 @@ interface TradePayload {
 
 const CopyTradingPage = () => {
   const [copyTradingData, setCopyTradingData] = useState<any>([]);
-  const { user } = useUser()
-  const user_id = user?.id || "";
+  const user_id = localStorage.getItem("ctm_user_id") || "";
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "trade_profit_loss",
     direction: "desc",

@@ -2,22 +2,25 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface UserData {
   _id: string;
-  clerkId: string;
   email: string;
-  username?: string;
-  firstName?: string;
-  lastName?: string;
-  fullName: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  authProvider: string;
+  isEmailVerified: boolean;
+  isActive: boolean;
+  lastLogin: string;
   roi: number;
-  role?: string;
-  kycStatus?: boolean;
+  role: string;
+  kycStatus: boolean;
   currentValue: number;
-  accountStatus?: boolean;
+  accountStatus: boolean;
   totalInvestment: number;
   createdAt: string;
   updatedAt: string;
-  __v?: number;
-  id?: string;
+  __v: number;
+  fullName: string;
+  id: string;
 }
 
 interface UserState {

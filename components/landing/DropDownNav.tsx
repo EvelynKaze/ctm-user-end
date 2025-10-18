@@ -45,7 +45,7 @@ const DropDownNav = () => {
             Log in
           </Link>
           <Link
-            href={"/signup"}
+            href={"/sign-up"}
             onClick={() => dispatch(closeNav())}
             className="hover:bg-gray-300 dark:hover:bg-appDark sm:py-2 p-2 sm:px-4 cursor-pointer"
           >
