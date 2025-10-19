@@ -12,8 +12,11 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoginAdsSlider } from "@/components/login-ads"
 import { useState } from "react"
-import { signup } from "@/app/actions/auth"
+import { signup, initiateGoogleAuth } from "@/app/actions/auth"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
+import Link from "next/link"
+import { toast } from "sonner";
 
 export function SignupForm({
   className,
@@ -31,27 +34,48 @@ export function SignupForm({
     e.preventDefault();
     if (isSubmitting) return;
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match", {
+        description: "Please make sure both password fields match.",
+      });
       return;
     }
     setIsSubmitting(true);
-    const res = await signup({ 
-      email, 
-      password, 
-      firstName, 
-      lastName 
-    });
-    setIsSubmitting(false);
-    if (res.success) {
-      router.replace("/loading");
-    } else {
-      alert(res.message || "Signup failed");
+    
+    try {
+      const res = await signup({ 
+        email, 
+        password, 
+        firstName, 
+        lastName 
+      });
+      
+      if (res.success) {
+        toast.success("Account created successfully!", {
+          description: "Welcome! Your account has been created.",
+        });
+        router.replace("/loading");
+      } else {
+        toast.error("Sign up failed", {
+          description: res.message || "Please check your information and try again.",
+        });
+      }
+    } catch (error) {
+      console.log("Error signing up:", error);
+      toast.error("Sign up failed", {
+        description: "An unexpected error occurred. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const handleGoogleSignUp = () => {
+    initiateGoogleAuth();
   };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card className="overflow-hidden p-0">
+      <Card className="overflow-hidden p-0 border-b-4">
         <CardContent className="grid p-0 md:grid-cols-2">
           <form className="p-6 md:p-8" onSubmit={onSubmit}>
             <FieldGroup>
@@ -82,6 +106,7 @@ export function SignupForm({
                   <Input 
                     id="first-name" 
                     type="text" 
+                    placeholder="Chris"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     required 
@@ -92,6 +117,7 @@ export function SignupForm({
                   <Input 
                     id="last-name" 
                     type="text" 
+                    placeholder="Hemsworth"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     required 
@@ -105,6 +131,7 @@ export function SignupForm({
                     <Input 
                       id="password" 
                       type="password" 
+                      placeholder="**********"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required 
@@ -117,6 +144,7 @@ export function SignupForm({
                     <Input 
                       id="confirm-password" 
                       type="password" 
+                      placeholder="**********"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required 
@@ -128,7 +156,7 @@ export function SignupForm({
                 </FieldDescription>
               </Field>
               <Field>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting} className="w-full">
                   {isSubmitting ? "Creating Account..." : "Create Account"}
                 </Button>
               </Field>
@@ -136,22 +164,23 @@ export function SignupForm({
                 Or continue with
               </FieldSeparator>
               <Field className="grid grid-cols-3 gap-4">
-                <Button variant="outline" type="button">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path
-                      d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                      fill="currentColor"
-                    />
-                  </svg>
+                <Button variant="outline" type="button" onClick={handleGoogleSignUp}>
+                  <Image
+                    src="/google.svg"
+                    alt="Google"
+                    className="w-5 h-5"
+                    width={2420}
+                    height={2100}
+                  />
                   <span className="sr-only">Sign up with Google</span>
                 </Button>
               </Field>
               <FieldDescription className="text-center">
-                Already have an account? <a href="#">Sign in</a>
+                Already have an account? <Link href="/sign-in">Sign in</Link>
               </FieldDescription>
             </FieldGroup>
           </form>
-          <div className="w-full grid justify-items-center md:hidden">
+          <div className="relative hidden md:flex items-center justify-center bg-black p-6">
             <LoginAdsSlider />
           </div>
         </CardContent>

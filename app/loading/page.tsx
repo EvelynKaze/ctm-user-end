@@ -19,9 +19,14 @@ export default function LoadingPage() {
         ? localStorage.getItem("ctm_user_id") 
         : null;
 
+      // Debug logging
+      console.log("Loading page - userId from localStorage:", userId);
+      console.log("Loading page - full localStorage:", typeof window !== "undefined" ? localStorage.getItem("ctm_user") : "N/A");
+
       if (!userId) {
         // If no userId, redirect to login
-        router.push("/login");
+        console.log("No userId found, redirecting to sign-in");
+        router.push("/sign-in");
         return;
       }
 
@@ -38,12 +43,12 @@ export default function LoadingPage() {
           router.push("/dashboard");
         } else {
           dispatch(setUserError("Failed to fetch user data"));
-          router.push("/login");
+          router.push("/sign-in");
         }
       } catch (error) {
         console.error("Failed to fetch user data:", error);
         dispatch(setUserError("Failed to fetch user data"));
-        router.push("/login");
+        router.push("/sign-in");
       } finally {
         dispatch(setUserLoading(false));
       }

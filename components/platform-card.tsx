@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react"
+import Image from "next/image"
 
 interface Platform {
   id: string
@@ -16,10 +17,12 @@ export function PlatformCard({ platform }: { platform: Platform }) {
       <div className="relative space-y-4">
         {/* Logo */}
         <div className="flex items-center justify-center">
-          <img
-            src={platform.logo || "/placeholder.svg"}
+          <Image
+            src={platform.logo}
             alt={`${platform.name} logo`}
-            className="h-16 w-16 rounded-lg bg-muted object-cover"
+            className="h-12 w-20 rounded-lg bg-transaprent object-fit"
+            width={2420}
+            height={1220}
           />
         </div>
 

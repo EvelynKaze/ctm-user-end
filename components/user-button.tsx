@@ -66,7 +66,7 @@ export function UserButton({ userName }: UserButtonProps) {
 
     // Clear local storage
     if (typeof window !== "undefined") {
-      window.localStorage.removeItem("token");
+      window.localStorage.removeItem("ctm_token");
       window.localStorage.removeItem("ctm_user_id");
     }
 

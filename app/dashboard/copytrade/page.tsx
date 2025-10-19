@@ -105,9 +105,9 @@ async function TradesContent() {
 
 export default function CopyTradePage() {
   return (
-    <main className="min-h-screen bg-background">
-      <header className="bg-card">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <main className="min-h-full bg-black">
+      <header className="bg-transparent">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="space-y-4">
             <h1 className="text-balance text-5xl font-bold tracking-tight text-foreground sm:text-6xl">
               Discover Elite Trading Strategies
@@ -121,7 +121,7 @@ export default function CopyTradePage() {
         </div>
       </header>
 
-      <section className="px-4 py-20 sm:px-6 lg:px-8">
+      <section className="px-4 py-14 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <Suspense fallback={<TradesLoading />}>
             <TradesContent />

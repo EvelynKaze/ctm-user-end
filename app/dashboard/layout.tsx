@@ -37,7 +37,7 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
             <MobileSidebar />
             <div className="w-full md:flex-grow h-full">
               <Header userName={userName} />
-              <div className="lg:h-[calc(100dvh-6rem)] bg-black p-4 md:p-12">{children}</div>
+              <div className="lg:h-[calc(100dvh-6rem)] bg-black p-4 md:p-12 overflow-y-auto">{children}</div>
             </div>
           </div>
         </RainbowKitProvider>
