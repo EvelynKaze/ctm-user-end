@@ -1,7 +1,7 @@
 // Client-compatible auth utilities. Do not mark this file as a server module.
 
 // Prefer NEXT_PUBLIC_API_URL for consistency with client-side usage, fallback to API_URL, then localhost
-const apiUrl = process.env.NEXT_PUBLIC_API_URL  || "http://localhost:5000/api/v1" || "https://ctm-backend-production.up.railway.app/api/v1";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://ctm-backend-production.up.railway.app/api/v1";
 
 export interface SignupPayload {
 	email: string;
