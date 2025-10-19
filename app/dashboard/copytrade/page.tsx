@@ -1,11 +1,21 @@
-import { Suspense } from "react"
-import { TradeCard } from "@/components/trade-card"
-import { fetchTrades } from "@/app/actions/fetch-trade"
-import { Skeleton } from "@/components/ui/skeleton"
+"use client";
+import { Suspense, useState, useEffect } from "react";
+import { TradeCard } from "@/components/trade-card";
+import { fetchTrades } from "@/app/actions/fetch-trade";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TradeFormModal } from "@/components/user-deposit/trade-modal";
+import { createCopyTrade } from "@/app/actions/copytrade";
+import { setCopyTrade } from "@/store/copyTradeSlice";
+import { useAppDispatch } from "@/store/hook";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { CopyTradingOption } from "@/types/dashboard";
+import { getUserById } from "@/app/actions/auth";
+import { UserData } from "@/store/userSlice";
 
-// Add this to make the page dynamic
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+
 
 // Loading skeleton component
 function TradeCardSkeleton() {
@@ -62,8 +72,141 @@ function TradesLoading() {
 }
 
 // Trades content component
-async function TradesContent() {
-  const trades = await fetchTrades()
+function TradesContent() {
+  const [trades, setTrades] = useState<CopyTradingOption[]>([]);
+  const [open, setOpen] = useState(false);
+  const [selectedTrade, setSelectedTrade] = useState<CopyTradingOption | null>(null);
+  const [portfolio, setPortfolio] = useState({ total_investment: 0, current_value: 0, roi: 0 });
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  
+  const dispatch = useAppDispatch();
+  const { userData } = useSelector((state: RootState) => state.user);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Get user ID from localStorage
+        const userId = localStorage.getItem('ctm_user_id');
+        
+        if (!userId) {
+          console.error("No user ID found in localStorage");
+          setIsLoadingUser(false);
+          return;
+        }
+
+        // Fetch user data by ID
+        const userResponse = await getUserById(userId);
+        
+        if (userResponse.success && userResponse.data) {
+          const user = userResponse.data as UserData
+          
+          // Extract portfolio information from user data
+          const portfolioData = {
+            total_investment: user.totalInvestment || 0,
+            current_value: user.currentValue || 0,
+            roi: user.roi || 0
+          };
+          
+          setPortfolio(portfolioData);
+          console.log("User portfolio data:", portfolioData);
+        } else {
+          console.error("Failed to fetch user data:", userResponse.message);
+          // Fallback to default values
+          setPortfolio({ total_investment: 0, current_value: 0, roi: 0 });
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        // Fallback to default values
+        setPortfolio({ total_investment: 0, current_value: 0, roi: 0 });
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+
+    const getTrades = async () => {
+      try {
+        const tradesData = await fetchTrades();
+        if (tradesData) {
+          setTrades(tradesData);
+        } else {
+          console.error("No trades data received");
+          setTrades([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch trades:", error);
+        setTrades([]);
+      }
+    };
+
+    // Fetch both user data and trades
+    fetchUserData();
+    getTrades();
+  }, []);
+
+  const handlePurchase = (trade: CopyTradingOption) => {
+    try {
+      const { trade_min, trade_max, trade_roi_min, trade_roi_max, trade_risk, trade_duration } = trade;
+      const total_investment = portfolio?.total_investment || 0; 
+
+      if (total_investment < trade_min) {
+        const difference = trade_min - total_investment;
+        dispatch( 
+          setCopyTrade({
+            title: trade.trade_title,
+            trade_min: difference,
+            trade_max,
+            trade_roi_min,
+            trade_roi_max,
+            trade_risk,
+            trade_duration,
+          })
+        );
+
+        toast("Insufficient funds!", {
+          description: `You need to deposit at least $${difference} to start this trade.`,
+        });
+
+        router.push("/dashboard/deposit");
+      } else {
+        setSelectedTrade(trade);
+        setOpen(true);
+      }
+    } catch (err) {
+      const error = err as Error;
+      console.error("Error in handlePurchase:", error);
+    }
+  };
+
+  const handleTradePurchase = async (amount: number) => {
+    if (!selectedTrade || amount > portfolio.total_investment) return;
+    try {
+      createCopyTrade({ 
+        data: selectedTrade, 
+        trade_title: selectedTrade.trade_title,
+        trade_duration: selectedTrade?.trade_duration,
+        user: userData?._id, 
+        initial_investment: amount,
+        trade_token: "fromBalance",
+        trade_token_address: "fromBalance",
+        trade_status: "pending",
+      })
+      
+      const newTotalInvestment = portfolio.total_investment - amount;
+      console.log("New total investment:", newTotalInvestment);
+      setOpen(false);
+      setSelectedTrade(null);
+      toast("Trade Purchased!", { description: "Thank you for your purchase!" });
+    } catch (error) {
+      console.error("Error creating trade:", error);
+      toast("Error creating trade!", { description: "Please try again later." });
+    }
+  };
+
+  // Show loading state while fetching user data
+  if (isLoadingUser) {
+    return <TradesLoading />;
+  }
 
   if (!trades || trades.length === 0) {
     return (
@@ -95,11 +238,27 @@ async function TradesContent() {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {trades.map((trade) => (
-        <TradeCard key={trade._id} trade={trade} />
-      ))}
-    </div>
+    <>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {trades.map((trade) => (
+          <TradeCard 
+            key={trade._id} 
+            trade={trade} 
+            onPurchase={handlePurchase}
+          />
+        ))}
+      </div>
+
+      {selectedTrade && (
+        <TradeFormModal 
+          open={open} 
+          setOpen={setOpen} 
+          portfolio={portfolio?.total_investment} 
+          trade={selectedTrade} 
+          onTradePurchase={handleTradePurchase}
+        />
+      )}
+    </>
   )
 }
 

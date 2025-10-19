@@ -3,7 +3,12 @@ import { Button } from "@/components/ui/button";
 import { TrendingUp, AlertCircle, CheckCircle2 } from "lucide-react";
 import { CopyTradingOption } from "@/types/dashboard";
 
-export function TradeCard({ trade }: { trade: CopyTradingOption }) {
+interface TradeCardProps {
+  trade: CopyTradingOption;
+  onPurchase?: (trade: CopyTradingOption) => void;
+}
+
+export function TradeCard({ trade, onPurchase }: TradeCardProps) {
   const getRiskColor = (risk: string) => {
     switch (risk.toLowerCase()) {
       case "low":
@@ -32,6 +37,12 @@ export function TradeCard({ trade }: { trade: CopyTradingOption }) {
       return "Copy Trade";
     }
     return "Purchase Copy Trade";
+  };
+
+  const handlePurchase = () => {
+    if (onPurchase) {
+      onPurchase(trade);
+    }
   };
 
   return (
@@ -87,7 +98,11 @@ export function TradeCard({ trade }: { trade: CopyTradingOption }) {
         </div>
 
         {/* CTA Button */}
-        <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" size="lg">
+        <Button 
+          onClick={handlePurchase} 
+          className="w-full bg-accent text-accent-foreground hover:bg-accent/90" 
+          size="lg"
+        >
           {getCTAText(trade.trade_risk, trade.trade_roi_max)}
         </Button>
       </div>
