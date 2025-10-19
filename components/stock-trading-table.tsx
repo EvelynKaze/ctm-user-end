@@ -9,7 +9,7 @@ import { Minus, Plus, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, Searc
 import { fetchStocks, ExchangeType } from "@/app/actions/fetch-stocks"
 import { Stock, Pagination } from "@/types/stock"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "sonner"
+// import { toast } from "sonner"
 
 interface StockQuantity {
   [symbol: string]: number
