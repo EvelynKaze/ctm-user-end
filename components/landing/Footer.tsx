@@ -1,4 +1,4 @@
-import { TrendingUp, Facebook, Twitter, Instagram, Youtube, Smartphone, Monitor } from "lucide-react"
+import { TrendingUp, Phone } from "lucide-react"
 import Link from "next/link"
 
 export function Footer() {
@@ -25,51 +25,14 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Follow Us */}
+          {/* Contact Us */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Follow Us</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">Contact Us</h3>
             <ul className="space-y-3">
               <li>
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-                  <Facebook className="w-4 h-4" />
-                  Facebook
-                </a>
-              </li>
-              <li>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-                  <Instagram className="w-4 h-4" />
-                  Instagram
-                </a>
-              </li>
-              <li>
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-                  <Twitter className="w-4 h-4" />
-                  Twitter
-                </a>
-              </li>
-              <li>
-                <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-                  <Youtube className="w-4 h-4" />
-                  YouTube
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Download The App */}
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Download The App</h3>
-            <ul className="space-y-3">
-              <li>
-                <a href="https://play.google.com/store" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-                  <Smartphone className="w-4 h-4" />
-                  Get it on Google Play
-                </a>
-              </li>
-              <li>
-                <a href="https://www.apple.com/app-store/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-                  <Monitor className="w-4 h-4" />
-                  Download on the App Store
+                <a href="tel:+19704458920" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+                  <Phone className="w-4 h-4" />
+                  +1 (970) 445-8920
                 </a>
               </li>
             </ul>
