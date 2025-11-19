@@ -9,7 +9,7 @@ import { SupportRequestDetails } from "./SupportRequestDetails"
 import { TableSkeleton } from "@/skeletons"
 import { useSelector } from "react-redux"
 import { RootState } from "@/store/store"
-import { fetchSupport } from "@/app/actions/fetchSupport"
+import { fetchSupport } from "@/app/actions/support"
 
 
 export function SupportRequestList() {

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PriorityBadge } from "./PriorityBadge"
 import { toast } from "sonner"
-import { createSupport } from "@/app/actions/createSupport"
+import { createSupport } from "@/app/actions/support"
 
 interface SupportRequestFormProps {
     email?: string
