@@ -33,6 +33,7 @@ export function CopyTradingOptions({ portfolio }:
       const getTrades = async () => {
         try {
           const tradesData = await fetchTrades();
+          console.log("Trades data received:", tradesData)
           if (tradesData) {
             setTrades(tradesData);
           } else {
