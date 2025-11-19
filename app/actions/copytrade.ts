@@ -1,6 +1,6 @@
 "use server";
 
-const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+const apiUrl = process.env.API_URL || "https://ctm-backend-production.up.railway.app/api/v1";
 
 export const createCopyTrade = async ({ 
   data, 

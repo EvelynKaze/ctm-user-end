@@ -1,8 +1,8 @@
 "use server";
 import { CopyTradingOption } from "@/types/dashboard";
 
-// Prefer NEXT_PUBLIC_API_URL for consistency, fallback to production URL, then localhost
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://ctm-backend-production.up.railway.app/api/v1";
+// Prefer API_URL for consistency, fallback to production URL, then localhost
+const apiUrl = process.env.API_URL || "https://ctm-backend-production.up.railway.app/api/v1";
 
 export interface CopyTradingApiResponse {
   success: boolean;

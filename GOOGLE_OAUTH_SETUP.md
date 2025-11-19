@@ -158,7 +158,7 @@ Create utility functions for authentication:
 ```typescript
 // lib/auth.ts
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5000';
 
 export interface User {
   _id: string;
@@ -382,10 +382,10 @@ Create a `.env.local` file in your Next.js project root:
 
 ```env
 # Backend API URL
-NEXT_PUBLIC_API_URL=http://localhost:5000
+API_URL=http://localhost:5000
 
 # For production:
-# NEXT_PUBLIC_API_URL=https://your-backend-domain.com
+# API_URL=https://your-backend-domain.com
 ```
 
 ---
@@ -459,7 +459,7 @@ GOOGLE_CALLBACK_URL=https://your-backend-domain.com/api/v1/oauth/google/callback
 ### Frontend Changes:
 Update your `.env.production`:
 ```env
-NEXT_PUBLIC_API_URL=https://your-backend-domain.com
+API_URL=https://your-backend-domain.com
 ```
 
 ### Google Console:
