@@ -126,15 +126,23 @@ function TradesContent() {
 
     const getTrades = async () => {
       try {
+        console.log("Starting to fetch trades...");
         const tradesData = await fetchTrades();
-        if (tradesData) {
+        console.log("Trades data received:", tradesData);
+        
+        if (tradesData && Array.isArray(tradesData) && tradesData.length > 0) {
           setTrades(tradesData);
+          console.log(`Successfully set ${tradesData.length} trades`);
         } else {
-          console.error("No trades data received");
+          console.warn("No trades data received or empty array:", tradesData);
           setTrades([]);
         }
       } catch (error) {
         console.error("Failed to fetch trades:", error);
+        if (error instanceof Error) {
+          console.error("Error message:", error.message);
+          console.error("Error stack:", error.stack);
+        }
         setTrades([]);
       }
     };
