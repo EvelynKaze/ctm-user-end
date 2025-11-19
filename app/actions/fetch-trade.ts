@@ -27,6 +27,7 @@ export const fetchTrades = async (): Promise<CopyTradingOption[] | null> => {
       throw new Error("Invalid response format");
     }
 
+    console.log("Trades fetched successfully", result.data)
     return result.data;
   } catch (error) {
     console.error("Fetch Trades API Error:", error);
