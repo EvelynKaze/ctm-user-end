@@ -111,9 +111,10 @@ const Withdrawal = () => {
     // Validate withdrawal when token or amount changes
     useEffect(() => {
         const validate = async () => {
-          if (!userData?._id || !watchedCurrency || !watchedAmount || watchedAmount <= 0) {
+          if (!watchedCurrency || !watchedAmount || watchedAmount <= 0) {
             setValidationError(null);
             setUsdValue(null);
+            setIsValidating(false);
             return;
           }
 
@@ -175,7 +176,8 @@ const Withdrawal = () => {
         // Debounce validation
         const timeoutId = setTimeout(validate, 500);
         return () => clearTimeout(timeoutId);
-      }, [watchedCurrency, watchedAmount, form]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [watchedCurrency, watchedAmount, form.setError]);
 
     const onSubmit = async (data: WithdrawalFormValues) => {
         setIsValidating(true);

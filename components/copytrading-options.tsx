@@ -12,10 +12,9 @@ import { useAppDispatch } from "@/store/hook";
 import { toast } from "sonner"
 import { TradeFormModal } from "./user-deposit/trade-modal";
 import { fetchTrades } from "@/app/actions/fetch-trade";
-import { createCopyTrade } from "@/app/actions/copytrade";
+import { createCopyTrade, CreateCopyTradeError } from "@/app/actions/copytrade";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { getStoredToken } from "@/app/actions/auth";
 
 
 export function CopyTradingOptions({ portfolio }: 
@@ -116,8 +115,9 @@ export function CopyTradingOptions({ portfolio }:
 
         if (!result.success) {
           // Handle API errors
-          const errorMessage = result.message || "Failed to create copytrade purchase";
-          const errorData = (result as any).data;
+          const errorResult = result as CreateCopyTradeError;
+          const errorMessage = errorResult.message || "Failed to create copytrade purchase";
+          const errorData = errorResult.data;
           
           if (errorData?.deficit) {
             toast("Insufficient Balance", {

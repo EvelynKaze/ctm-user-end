@@ -4,7 +4,7 @@ import { TradeCard } from "@/components/trade-card";
 import { fetchTrades } from "@/app/actions/fetch-trade";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TradeFormModal } from "@/components/user-deposit/trade-modal";
-import { createCopyTrade } from "@/app/actions/copytrade";
+import { createCopyTrade, CreateCopyTradeError } from "@/app/actions/copytrade";
 import { setCopyTrade } from "@/store/copyTradeSlice";
 import { useAppDispatch } from "@/store/hook";
 import { useSelector } from "react-redux";
@@ -12,7 +12,7 @@ import { RootState } from "@/store/store";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CopyTradingOption } from "@/types/dashboard";
-import { getUserById, getStoredToken } from "@/app/actions/auth";
+import { getUserById } from "@/app/actions/auth";
 import { UserData } from "@/store/userSlice";
 
 
@@ -218,8 +218,9 @@ function TradesContent() {
 
       if (!result.success) {
         // Handle API errors
-        const errorMessage = result.message || "Failed to create copytrade purchase";
-        const errorData = (result as any).data;
+        const errorResult = result as CreateCopyTradeError;
+        const errorMessage = errorResult.message || "Failed to create copytrade purchase";
+        const errorData = errorResult.data;
         
         if (errorData?.deficit) {
           toast("Insufficient Balance", {
