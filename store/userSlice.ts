@@ -16,6 +16,7 @@ export interface UserData {
   currentValue: number;
   accountStatus: boolean;
   totalInvestment: number;
+  accountBalance?: number;
   createdAt: string;
   updatedAt: string;
   __v: number;

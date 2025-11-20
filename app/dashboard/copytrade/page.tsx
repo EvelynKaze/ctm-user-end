@@ -12,7 +12,7 @@ import { RootState } from "@/store/store";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CopyTradingOption } from "@/types/dashboard";
-import { getUserById } from "@/app/actions/auth";
+import { getUserById, getStoredToken } from "@/app/actions/auth";
 import { UserData } from "@/store/userSlice";
 
 
@@ -154,25 +154,26 @@ function TradesContent() {
 
   const handlePurchase = (trade: CopyTradingOption) => {
     try {
-      const { trade_min, trade_max, trade_roi_min, trade_roi_max, trade_risk, trade_duration } = trade;
-      const total_investment = portfolio?.total_investment || 0; 
+      const { trade_min } = trade;
+      // Use accountBalance from userData if available, otherwise fallback to total_investment
+      const availableBalance = userData?.accountBalance ?? portfolio?.total_investment ?? 0;
 
-      if (total_investment < trade_min) {
-        const difference = trade_min - total_investment;
+      if (availableBalance < trade_min) {
+        const difference = trade_min - availableBalance;
         dispatch( 
           setCopyTrade({
             title: trade.trade_title,
             trade_min: difference,
-            trade_max,
-            trade_roi_min,
-            trade_roi_max,
-            trade_risk,
-            trade_duration,
+            trade_max: trade.trade_max,
+            trade_roi_min: trade.trade_roi_min,
+            trade_roi_max: trade.trade_roi_max,
+            trade_risk: trade.trade_risk,
+            trade_duration: trade.trade_duration,
           })
         );
 
         toast("Insufficient funds!", {
-          description: `You need to deposit at least $${difference} to start this trade.`,
+          description: `You need to deposit at least $${difference.toFixed(2)} to start this trade.`,
         });
 
         router.push("/dashboard/deposit");
@@ -187,27 +188,61 @@ function TradesContent() {
   };
 
   const handleTradePurchase = async (amount: number) => {
-    if (!selectedTrade || amount > portfolio.total_investment) return;
+    if (!selectedTrade || !userData?._id) {
+      toast("Error", { description: "Missing trade or user information." });
+      return;
+    }
+
+    // Get auth token
+    const token = typeof window !== "undefined" 
+      ? localStorage.getItem("ctm_token") 
+      : null;
+
+    if (!token) {
+      toast("Error", { description: "Authentication token not found. Please log in again." });
+      return;
+    }
+
     try {
-      createCopyTrade({ 
-        data: selectedTrade, 
-        trade_title: selectedTrade.trade_title,
-        trade_duration: selectedTrade?.trade_duration,
-        user: userData?._id, 
-        initial_investment: amount,
-        trade_token: "fromBalance",
-        trade_token_address: "fromBalance",
-        trade_status: "pending",
-      })
-      
-      const newTotalInvestment = portfolio.total_investment - amount;
-      console.log("New total investment:", newTotalInvestment);
+      const result = await createCopyTrade(
+        {
+          copytradeOptionId: selectedTrade._id,
+          initial_investment: amount,
+        },
+        token
+      );
+
+      if (!result) {
+        throw new Error("Failed to create copytrade purchase");
+      }
+
+      if (!result.success) {
+        // Handle API errors
+        const errorMessage = result.message || "Failed to create copytrade purchase";
+        const errorData = (result as any).data;
+        
+        if (errorData?.deficit) {
+          toast("Insufficient Balance", {
+            description: `${errorMessage}. You need $${errorData.deficit.toFixed(2)} more.`,
+          });
+          router.push("/dashboard/deposit");
+        } else {
+          toast("Error", { description: errorMessage });
+        }
+        return;
+      }
+
+      // Success
       setOpen(false);
       setSelectedTrade(null);
-      toast("Trade Purchased!", { description: "Thank you for your purchase!" });
+      toast("Success", { 
+        description: result.message || "Copytrade purchase created successfully! It will be pending until admin approval." 
+      });
     } catch (error) {
       console.error("Error creating trade:", error);
-      toast("Error creating trade!", { description: "Please try again later." });
+      toast("Error", { 
+        description: error instanceof Error ? error.message : "Failed to create copytrade purchase. Please try again later." 
+      });
     }
   };
 

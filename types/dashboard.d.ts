@@ -1,7 +1,10 @@
 export interface CryptoStats {
     total_investment: number;
+    account_balance?: number;
     current_value: number;
     roi: number;
+    total_profit_loss?: number;
+    total_profit_loss_percentage?: number;
   }
   
   export interface MarketTrend {

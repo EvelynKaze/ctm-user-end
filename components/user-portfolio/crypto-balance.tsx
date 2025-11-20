@@ -1,177 +1,315 @@
-// "use client"
-// import { useState, useEffect } from "react"
-// import { fetchTransactions } from "@/app/actions/fetchTransactions"
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-// import { toast } from "sonner"
-// import { Live } from "@/types";
-// import { Skeleton } from "@/components/ui/skeleton";
+"use client";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { RefreshCw, TrendingUp, TrendingDown } from "lucide-react";
+import { TokenHolding, PortfolioData } from "@/app/actions/fetchPortfolio";
+import { getStoredToken } from "@/app/actions/auth";
+import { toast } from "sonner";
 
-// interface Transaction {
-//   $id: string;
-//   $createdAt: string;
-//   type: string;
-//   amount: number;
-//   token_name: string;
-//   currency: string;
-//   status: string;
-//   isDeposit?: boolean;
-//   date: string;
-// }
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://ctm-backend-production.up.railway.app/api/v1";
 
-// export default function CryptoBalance() {
-//   const [isLoading, setIsLoading] = useState(true); // Initialize as true
-//   const [transactions, setTransactions] = useState<Transaction[]>([]);
-//   const [live, setLive] = useState<Live[]>([]);
-//   const { user } = useUser();
-//   const userId = user?.id || "";
+export default function CryptoBalance() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-//   // Fetch transactions from Appwrite database
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       setIsLoading(true);
-//       try {
-//         const data = await fetchTransactions(userId);
-//         setTransactions(data);
-//       } catch (error) {
-//         console.error("Error fetching transactions:", error);
-//         toast("Failed to fetch.");
-//       }
-//     };
+  const loadPortfolio = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Get auth token
+      const token = getStoredToken();
+      
+      if (!token) {
+        setError("Authentication token not found. Please log in again.");
+        setIsLoading(false);
+        return;
+      }
 
-//     fetchData();
-//   }, [userId]);
+      const url = `${apiUrl}/portfolio/my-portfolio`;
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      };
 
-//   useEffect(() => {
-//     const fetchCryptos = async () => {
-//       try {
-//         const res = await fetch('/api/live-crypto');
-//         const data = await res.json();
-//         setLive(data);
-//       } catch (error) {
-//         console.error("Error fetching cryptos from backend:", error);
-//       } finally {
-//         setIsLoading(false); // Set loading to false when both fetches are done
-//       }
-//     };
-  
-//     fetchCryptos();
-//   }, []);
+      const response = await fetch(url, {
+        method: "GET",
+        headers,
+        cache: 'no-store',
+      });
 
-//   // Calculate total value by matching transactions with live data
-//   const totalValue = transactions.reduce((sum, transaction) => {
-//     const crypto = live.find(c => c.name === transaction.token_name);
-//     return sum + (crypto ? transaction.amount * crypto.price : 0);
-//   }, 0);
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'No error details');
+        console.error(`Failed to fetch portfolio: ${response.status} ${response.statusText}`, errorText);
+        throw new Error(`Failed to fetch portfolio: ${response.status}`);
+      }
 
-//   // Skeleton loading rows
-//   const skeletonRows = Array(5).fill(0).map((_, index) => (
-//     <TableRow key={`skeleton-${index}`}>
-//       <TableCell>
-//         <div className="flex items-center gap-3">
-//           <Skeleton className="h-8 w-8 rounded-full" />
-//           <Skeleton className="h-4 w-24" />
-//         </div>
-//       </TableCell>
-//       <TableCell className="text-right">
-//         <Skeleton className="h-4 w-16 ml-auto" />
-//       </TableCell>
-//       <TableCell className="text-right">
-//         <Skeleton className="h-4 w-16 ml-auto" />
-//       </TableCell>
-//       <TableCell className="text-right">
-//         <Skeleton className="h-4 w-16 ml-auto" />
-//       </TableCell>
-//       <TableCell className="text-right">
-//         <Skeleton className="h-4 w-10 ml-auto" />
-//       </TableCell>
-//     </TableRow>
-//   ));
+      const result = await response.json();
 
-//   return (
-//     <main className="container mx-auto py-4 px-4 md:px-6 mb-10">
-//       <div className="flex flex-col gap-6">
-//         {/* Top Section */}
-//         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-//           <div>
-//             <h2 className="text-2xl font-bold">Crypto Balance</h2>
-//             <p className="text-muted-foreground text-sm">Your cryptocurrency holdings</p>
-//           </div>
-//           <div className="bg-muted p-4 rounded-lg">
-//             <div className="text-sm text-muted-foreground">Total Value</div>
-//             {isLoading ? (
-//               <Skeleton className="h-8 w-32 mt-1" />
-//             ) : (
-//               <div className="text-2xl font-bold">
-//                 ${totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-//               </div>
-//             )}
-//           </div>
-//         </div>
+      if (!result.success || !result.data) {
+        console.error("Invalid response format from portfolio API:", result);
+        throw new Error("Invalid response format");
+      }
 
-//         {/* Table Section */}
-//         <div className="rounded-md border overflow-hidden">
-//           <div className="max-h-[370px] overflow-y-auto">
-//             <Table>
-//               <TableHeader className="sticky top-0 bg-background z-10">
-//                 <TableRow>
-//                   <TableHead>Asset</TableHead>
-//                   <TableHead className="text-right">Amount</TableHead>
-//                   <TableHead className="text-right">Price</TableHead>
-//                   <TableHead className="text-right">Value (USD)</TableHead>
-//                   <TableHead className="text-right">24h</TableHead>
-//                 </TableRow>
-//               </TableHeader>
-//               <TableBody>
-//                 {isLoading ? (
-//                   skeletonRows
-//                 ) : (
-//                   transactions.map((transaction) => {
-//                     const crypto = live.find(c => c.name === transaction.token_name);
-//                     const value = crypto ? transaction.amount * crypto.price : 0;
-                    
-//                     return (
-//                       <TableRow key={transaction.$id}>
-//                         <TableCell>
-//                           <div className="flex items-center gap-3">
-//                             <Avatar className="h-8 w-8">
-//                               <AvatarImage src="/placeholder.svg" alt={transaction.token_name} />
-//                               <AvatarFallback>{transaction.token_name.substring(0, 2)}</AvatarFallback>
-//                             </Avatar>
-//                             <div className="font-medium">{transaction.token_name}</div>
-//                           </div>
-//                         </TableCell>
-//                         <TableCell className="text-right font-medium">
-//                           {transaction.amount < 1 ? transaction.amount : transaction.amount.toLocaleString("en-US")}
-//                         </TableCell>
-//                         <TableCell className="text-right">
-//                           {crypto ? `$${
-//                             crypto.price < 1
-//                               ? crypto.price.toFixed(4)
-//                               : crypto.price.toLocaleString("en-US", {
-//                                   minimumFractionDigits: 2,
-//                                   maximumFractionDigits: 2,
-//                                 })
-//                           }` : '-'}
-//                         </TableCell>
-//                         <TableCell className="text-right font-medium">
-//                           ${value.toLocaleString("en-US", {
-//                             minimumFractionDigits: 2,
-//                             maximumFractionDigits: 2,
-//                           })}
-//                         </TableCell>
-//                         <TableCell className="text-right">
-//                           -
-//                         </TableCell>
-//                       </TableRow>
-//                     );
-//                   })
-//                 )}
-//               </TableBody>
-//             </Table>
-//           </div>
-//         </div>
-//       </div>
-//     </main>
-//   )
-// }
+      setPortfolio(result.data);
+      console.log("Portfolio data loaded:", result.data);
+    } catch (err) {
+      console.error("Error fetching portfolio:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch portfolio");
+      toast.error("Failed to load portfolio");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPortfolio();
+    
+    // Refresh portfolio every 60 seconds to get updated prices
+    const interval = setInterval(loadPortfolio, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
+  const formatTokenAmount = (amount: number): string => {
+    if (amount < 0.0001) {
+      return amount.toExponential(2);
+    }
+    if (amount < 1) {
+      return amount.toFixed(6);
+    }
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 6,
+    }).format(amount);
+  };
+
+  const formatPrice = (price: number): string => {
+    if (price < 0.01) {
+      return `$${price.toFixed(6)}`;
+    }
+    if (price < 1) {
+      return `$${price.toFixed(4)}`;
+    }
+    return formatCurrency(price);
+  };
+
+  // Skeleton loading rows
+  const skeletonRows = Array(5).fill(0).map((_, index) => (
+    <TableRow key={`skeleton-${index}`}>
+      <TableCell>
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+      </TableCell>
+      <TableCell className="text-right">
+        <Skeleton className="h-4 w-20 ml-auto" />
+      </TableCell>
+      <TableCell className="text-right">
+        <Skeleton className="h-4 w-24 ml-auto" />
+      </TableCell>
+      <TableCell className="text-right">
+        <Skeleton className="h-4 w-24 ml-auto" />
+      </TableCell>
+      <TableCell className="text-right">
+        <Skeleton className="h-4 w-24 ml-auto" />
+      </TableCell>
+      <TableCell className="text-right">
+        <Skeleton className="h-4 w-20 ml-auto" />
+      </TableCell>
+    </TableRow>
+  ));
+
+  if (error && !portfolio) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Crypto Portfolio</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-destructive mb-4">{error}</p>
+            <button
+              onClick={loadPortfolio}
+              className="px-4 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90"
+            >
+              Retry
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <CardTitle className="text-2xl font-bold">Crypto Portfolio</CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">Your cryptocurrency holdings</p>
+        </div>
+        <div className="flex items-center gap-4">
+          {/* Total Balance Display */}
+          <div className="bg-muted p-4 rounded-lg min-w-[200px]">
+            <div className="text-xs text-muted-foreground mb-1">Total Portfolio Value</div>
+            {isLoading ? (
+              <Skeleton className="h-8 w-32 mt-1" />
+            ) : (
+              <div className="text-2xl font-bold">
+                {portfolio ? formatCurrency(portfolio.totalCurrentValue) : "$0.00"}
+              </div>
+            )}
+            {portfolio && !isLoading && (
+              <div
+                className={`text-sm mt-1 flex items-center gap-1 ${
+                  portfolio.totalProfitLoss >= 0 ? "text-green-500" : "text-red-500"
+                }`}
+              >
+                {portfolio.totalProfitLoss >= 0 ? (
+                  <TrendingUp className="h-4 w-4" />
+                ) : (
+                  <TrendingDown className="h-4 w-4" />
+                )}
+                {portfolio.totalProfitLoss >= 0 ? "+" : ""}
+                {formatCurrency(portfolio.totalProfitLoss)} (
+                {portfolio.totalProfitLossPercentage >= 0 ? "+" : ""}
+                {portfolio.totalProfitLossPercentage.toFixed(2)}%)
+              </div>
+            )}
+          </div>
+          <button
+            onClick={loadPortfolio}
+            disabled={isLoading}
+            className="p-2 rounded-lg hover:bg-muted transition-colors disabled:opacity-50"
+            title="Refresh portfolio"
+          >
+            <RefreshCw className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`} />
+          </button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border overflow-hidden">
+          <div className="max-h-[600px] overflow-y-auto">
+            <Table>
+              <TableHeader className="sticky top-0 bg-background z-10">
+                <TableRow>
+                  <TableHead>Token</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Current Price</TableHead>
+                  <TableHead className="text-right">Current Value</TableHead>
+                  <TableHead className="text-right">Invested</TableHead>
+                  <TableHead className="text-right">Profit/Loss</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  skeletonRows
+                ) : portfolio && portfolio.holdings.length > 0 ? (
+                  portfolio.holdings.map((holding: TokenHolding) => (
+                    <TableRow key={holding.tokenName}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center text-white font-bold text-xs">
+                            {holding.tokenName.substring(0, 2)}
+                          </div>
+                          <div className="font-medium">{holding.tokenName}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {formatTokenAmount(holding.amount)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {holding.currentPrice ? formatPrice(holding.currentPrice) : "-"}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {holding.currentValue ? formatCurrency(holding.currentValue) : "-"}
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {formatCurrency(holding.totalInvestedUsd)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div
+                          className={`flex items-center justify-end gap-1 ${
+                            holding.profitLoss >= 0 ? "text-green-500" : "text-red-500"
+                          }`}
+                        >
+                          {holding.profitLoss >= 0 ? (
+                            <TrendingUp className="h-4 w-4" />
+                          ) : (
+                            <TrendingDown className="h-4 w-4" />
+                          )}
+                          <span>
+                            {holding.profitLoss >= 0 ? "+" : ""}
+                            {formatCurrency(holding.profitLoss)}
+                          </span>
+                          <span className="text-xs ml-1">
+                            ({holding.profitLossPercentage >= 0 ? "+" : ""}
+                            {holding.profitLossPercentage.toFixed(2)}%)
+                          </span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                      No cryptocurrency holdings found. Start by making a deposit!
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+
+        {/* Portfolio Summary */}
+        {portfolio && !isLoading && portfolio.holdings.length > 0 && (
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t">
+            <div className="text-center">
+              <div className="text-sm text-muted-foreground mb-1">Total Invested</div>
+              <div className="text-lg font-semibold">
+                {formatCurrency(portfolio.totalInvestedValue)}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm text-muted-foreground mb-1">Total Value</div>
+              <div className="text-lg font-semibold">
+                {formatCurrency(portfolio.totalCurrentValue)}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm text-muted-foreground mb-1">Total Return</div>
+              <div
+                className={`text-lg font-semibold flex items-center justify-center gap-1 ${
+                  portfolio.totalProfitLoss >= 0 ? "text-green-500" : "text-red-500"
+                }`}
+              >
+                {portfolio.totalProfitLoss >= 0 ? (
+                  <TrendingUp className="h-5 w-5" />
+                ) : (
+                  <TrendingDown className="h-5 w-5" />
+                )}
+                {portfolio.totalProfitLoss >= 0 ? "+" : ""}
+                {formatCurrency(portfolio.totalProfitLoss)} (
+                {portfolio.totalProfitLossPercentage >= 0 ? "+" : ""}
+                {portfolio.totalProfitLossPercentage.toFixed(2)}%)
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

@@ -7,7 +7,7 @@ import StockPage from "@/components/user-portfolio/stocks-purchased";
 import { clearStockOption } from "@/store/stockOptionsSlice";
 import { clearCopyTrade } from "@/store/copyTradeSlice";
 import { useDispatch } from "react-redux";
-// import CryptoBalance from "@/components/user-portfolio/crypto-balance";
+import CryptoBalance from "@/components/user-portfolio/crypto-balance";
 
 
 export default function AdminDashboard() {
@@ -47,7 +47,7 @@ export default function AdminDashboard() {
           <StockPage />
         </TabsContent>
         <TabsContent value="crypto" className="mt-6">
-          {/* <CryptoBalance /> */}
+          <CryptoBalance />
         </TabsContent>
         <TabsContent value="copy-trades" className="mt-6">
           <CopyTradingPage />

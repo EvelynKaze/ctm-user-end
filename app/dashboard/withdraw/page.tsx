@@ -24,7 +24,7 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 import { motion } from "framer-motion";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import WithdrawalModal from "@/components/modals/withdrawal-modal";
 import { toast } from "sonner"
@@ -32,8 +32,10 @@ import { clearStockOption } from "@/store/stockOptionsSlice";
 import { clearCopyTrade } from "@/store/copyTradeSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { fetchCryptocurrencies } from "@/app/actions/fetch-crypto";
 import { withdraw } from "@/app/actions/withdraw";
+import { fetchAvailableTokens } from "@/app/actions/fetchAvailableTokens";
+import { validateWithdrawal } from "@/app/actions/validateWithdrawal";
+import { getStoredToken } from "@/app/actions/auth";
 
 const withdrawalSchema = z.object({
     currency: z.string().nonempty("Please select a cryptocurrency."),
@@ -46,7 +48,11 @@ type WithdrawalFormValues = z.infer<typeof withdrawalSchema>;
 const Withdrawal = () => {
     const { userData } = useSelector((state: RootState) => state.user);
     const dispatch = useDispatch();
-    const [cryptocurrencies, setCryptocurrencies] = useState<{ id: string; name: string; value: string; address: string }[]>([]);
+    const [availableTokens, setAvailableTokens] = useState<{ tokenName: string; amount: number; averagePrice: number }[]>([]);
+    const [isLoadingTokens, setIsLoadingTokens] = useState(true);
+    const [validationError, setValidationError] = useState<string | null>(null);
+    const [usdValue, setUsdValue] = useState<number | null>(null);
+    const [isValidating, setIsValidating] = useState(false);
     const form = useForm<WithdrawalFormValues>({
         resolver: zodResolver(withdrawalSchema),
         defaultValues: {
@@ -57,58 +63,175 @@ const Withdrawal = () => {
         mode: "onChange",
     });
 
-    // Fetch cryptocurrencies from Appwrite database
+    // Fetch available tokens from user's portfolio
     useEffect(() => {
-        const getCryptocurrencies = async () => {
+        const getAvailableTokens = async () => {
+          setIsLoadingTokens(true);
           try {
-            const response = await fetchCryptocurrencies();
-            if (response && response.success && response.data) {
-              // Transform the API response to match the expected format
-              const transformedCryptocurrencies = response.data.map((crypto) => ({
-                id: crypto._id,
-                name: crypto.token_name,
-                value: crypto.token_symbol,
-                address: crypto.token_address,
-              }));
-              setCryptocurrencies(transformedCryptocurrencies);
+            const token = getStoredToken();
+            
+            if (!token) {
+              toast("Error", {
+                description: "Authentication token not found. Please log in again.",
+              });
+              setIsLoadingTokens(false);
+              return;
+            }
+
+            const tokens = await fetchAvailableTokens(token);
+            
+            if (tokens && tokens.length > 0) {
+              setAvailableTokens(tokens);
             } else {
-              throw new Error("Failed to fetch cryptocurrency data");
+              setAvailableTokens([]);
+              toast("Info", {
+                description: "You don't have any tokens in your portfolio to withdraw.",
+              });
             }
           } catch (error) {
-            console.error("Error fetching cryptocurrencies:", error);
+            console.error("Error fetching available tokens:", error);
             toast("Error", {
-              description: "Failed to fetch cryptocurrency data.",
+              description: "Failed to fetch available tokens.",
             });
+            setAvailableTokens([]);
+          } finally {
+            setIsLoadingTokens(false);
           }
         };
     
-        getCryptocurrencies();
+        getAvailableTokens();
         dispatch(clearStockOption());
         dispatch(clearCopyTrade());
       }, [dispatch]);
 
+    // Watch form values for validation
+    const watchedCurrency = useWatch({ control: form.control, name: "currency" });
+    const watchedAmount = useWatch({ control: form.control, name: "amount" });
+
+    // Validate withdrawal when token or amount changes
+    useEffect(() => {
+        const validate = async () => {
+          if (!userData?._id || !watchedCurrency || !watchedAmount || watchedAmount <= 0) {
+            setValidationError(null);
+            setUsdValue(null);
+            return;
+          }
+
+          setIsValidating(true);
+          setValidationError(null);
+          
+          try {
+            const token = getStoredToken();
+            
+            if (!token) {
+              setValidationError("Authentication token not found. Please log in again.");
+              setIsValidating(false);
+              return;
+            }
+
+            const validation = await validateWithdrawal(
+              {
+                tokenName: watchedCurrency,
+                amount: watchedAmount,
+              },
+              token
+            );
+
+            if (!validation) {
+              setValidationError("Failed to validate withdrawal. Please try again.");
+              setUsdValue(null);
+              return;
+            }
+
+            if (validation.valid) {
+              setValidationError(null);
+              setUsdValue(validation.usdValue);
+            } else {
+              setValidationError(validation.reason);
+              setUsdValue(null);
+              
+              // Show specific error messages
+              if (validation.code === "INSUFFICIENT_TOKEN_BALANCE" && validation.available !== undefined) {
+                form.setError("amount", {
+                  type: "manual",
+                  message: `Insufficient balance. Available: ${validation.available}`,
+                });
+              } else if (validation.code === "TOKEN_NOT_IN_PORTFOLIO") {
+                form.setError("currency", {
+                  type: "manual",
+                  message: validation.reason,
+                });
+              }
+            }
+          } catch (error) {
+            console.error("Validation error:", error);
+            setValidationError("Failed to validate withdrawal.");
+            setUsdValue(null);
+          } finally {
+            setIsValidating(false);
+          }
+        };
+
+        // Debounce validation
+        const timeoutId = setTimeout(validate, 500);
+        return () => clearTimeout(timeoutId);
+      }, [watchedCurrency, watchedAmount, form]);
+
     const onSubmit = async (data: WithdrawalFormValues) => {
+        setIsValidating(true);
         try {
+          const token = getStoredToken();
+          
+          if (!token) {
+            toast("Error", {
+              description: "Authentication token not found. Please log in again.",
+            });
+            setIsValidating(false);
+            return;
+          }
+
+          const validation = await validateWithdrawal(
+            {
+              tokenName: data.currency,
+              amount: data.amount,
+            },
+            token
+          );
+
+          if (!validation || !validation.valid) {
+            const errorMessage = validation?.reason || "Invalid withdrawal request. Please check your balance.";
+            toast("Error", {
+              description: errorMessage,
+            });
+            setValidationError(errorMessage);
+            setIsValidating(false);
+            return;
+          }
+
+          // Proceed with withdrawal
+          // Note: user ID should come from JWT token on backend, but keeping for backward compatibility
           const withdrawPayload = {
             token_name: data.currency,
             amount: data.amount,
             token_withdraw_address: data.address,
-            user: userData?._id,
+            user: userData?._id || null,
           };
 
           const transaction = await withdraw(withdrawPayload);
       
           if (transaction) {
             toast("Success", {
-              description: "Withdrawal request created successfully.",
+              description: `Withdrawal request created successfully. USD Value: $${validation.usdValue.toFixed(2)}`,
             });
             
-            // Reset form on success
+            // Reset form and validation state on success
             form.reset({
               currency: "",
               amount: 0,
               address: "",
             });
+            setValidationError(null);
+            setUsdValue(null);
             
             console.log("Withdrawal Transaction:", transaction);
           } else {
@@ -119,6 +242,8 @@ const Withdrawal = () => {
           toast("Error", {
             description: "Failed to create withdrawal transaction.",
           });
+        } finally {
+          setIsValidating(false);
         }
       };
 
@@ -163,15 +288,25 @@ const Withdrawal = () => {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent className="dark:bg-appDark rounded text-xs">
-                                                        {cryptocurrencies.map((crypto) => (
-                                                            <SelectItem
-                                                                className="hover:bg-appGold20 outline-none hover:border-none rounded"
-                                                                key={crypto.value}
-                                                                value={crypto.value}
-                                                            >
-                                                                {crypto.name}
+                                                        {isLoadingTokens ? (
+                                                            <SelectItem value="loading" disabled>
+                                                                Loading tokens...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : availableTokens.length === 0 ? (
+                                                            <SelectItem value="no-tokens" disabled>
+                                                                No tokens available
+                                                            </SelectItem>
+                                                        ) : (
+                                                            availableTokens.map((token) => (
+                                                                <SelectItem
+                                                                    className="hover:bg-appGold20 outline-none hover:border-none rounded"
+                                                                    key={token.tokenName}
+                                                                    value={token.tokenName}
+                                                                >
+                                                                    {token.tokenName} ({token.amount.toFixed(6)} available)
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -188,12 +323,23 @@ const Withdrawal = () => {
                                                 <FormControl>
                                                     <Input
                                                         type="number"
-                                                        step="0.01"
+                                                        step="0.00000001"
                                                         placeholder="Enter withdrawal amount (e.g., 0.01)"
                                                         {...field}
                                                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                                                     />
                                                 </FormControl>
+                                                {validationError && (
+                                                  <p className="text-sm text-red-500 mt-1">{validationError}</p>
+                                                )}
+                                                {usdValue !== null && !validationError && (
+                                                  <p className="text-sm text-green-500 mt-1">
+                                                    USD Value: ${usdValue.toFixed(2)}
+                                                  </p>
+                                                )}
+                                                {isValidating && (
+                                                  <p className="text-sm text-muted-foreground mt-1">Validating...</p>
+                                                )}
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -220,8 +366,9 @@ const Withdrawal = () => {
                                     <Button
                                         type="submit"
                                         className="w-full text-appDarkCard bg-appCardGold"
+                                        disabled={isValidating || !!validationError || !watchedCurrency || !watchedAmount || watchedAmount <= 0}
                                     >
-                                        Withdraw
+                                        {isValidating ? "Validating..." : "Withdraw"}
                                     </Button>
                                 </form>
                             </FormProvider>

@@ -62,10 +62,19 @@ export default function UserDashboard() {
     roi: userData?.roi || 0,
   };
 
+  // Calculate profit/loss
+  const currentValue = userData?.currentValue ?? 0;
+  const totalInvestment = userData?.totalInvestment ?? 0;
+  const profitLoss = currentValue - totalInvestment;
+  const profitLossPercentage = userData?.roi ?? 0;
+
   const stats = {
     total_investment: userPortfolio.total_investment,
+    account_balance: userData?.accountBalance,
     current_value: userPortfolio.current_value,
     roi: userPortfolio.roi,
+    total_profit_loss: profitLoss,
+    total_profit_loss_percentage: profitLossPercentage,
   };
 
   // Show loading state
