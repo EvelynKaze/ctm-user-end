@@ -14,20 +14,20 @@ function deleteCookie(name: string) {
   }
 }
 
-interface LogoutDropdownProps {
+interface UserDropdownProps {
   onLogout: () => void;
+  onEditProfile: () => void;
   onClose: () => void;
   isOpen: boolean;
   anchorRef: React.RefObject<HTMLDivElement>;
 }
 
-function LogoutDropdown({ onLogout, onClose, isOpen, anchorRef }: LogoutDropdownProps) {
+function UserDropdown({ onLogout, onEditProfile, onClose, isOpen, anchorRef }: UserDropdownProps) {
   // Close dropdown on click outside
   useEffect(() => {
     if (!isOpen) return;
     function handleClick(e: MouseEvent) {
       if (anchorRef.current && !anchorRef.current.contains(e.target as Node)) {
-        // Just close the dropdown, don't logout
         onClose();
       }
     }
@@ -38,10 +38,24 @@ function LogoutDropdown({ onLogout, onClose, isOpen, anchorRef }: LogoutDropdown
   if (!isOpen) return null;
 
   return (
-    <div className="absolute right-0 top-14 z-50 bg-white dark:bg-appDarkCard shadow-md border rounded px-4 py-2 min-w-[130px]">
+    <div className="absolute right-0 top-14 z-50 bg-white dark:bg-appDarkCard shadow-md border rounded px-4 py-2 min-w-[150px]">
       <button
-        className="text-red-600 font-semibold py-1 px-2 w-full hover:bg-red-50 dark:hover:bg-appDark/40 rounded"
-        onClick={onLogout}
+        className="text-foreground font-semibold py-2 px-2 w-full hover:bg-muted dark:hover:bg-appDark/40 rounded text-left"
+        onClick={() => {
+          onEditProfile();
+          onClose();
+        }}
+        type="button"
+      >
+        Edit Profile
+      </button>
+      <div className="border-t border-border my-1" />
+      <button
+        className="text-red-600 font-semibold py-2 px-2 w-full hover:bg-red-50 dark:hover:bg-appDark/40 rounded text-left"
+        onClick={() => {
+          onLogout();
+          onClose();
+        }}
         type="button"
       >
         Log out
@@ -61,9 +75,6 @@ export function UserButton({ userName }: UserButtonProps) {
   const router = useRouter()
 
   const handleLogout = () => {
-    // Close dropdown first
-    setDropdownOpen(false);
-
     // Clear local storage
     if (typeof window !== "undefined") {
       window.localStorage.removeItem("ctm_token");
@@ -81,9 +92,11 @@ export function UserButton({ userName }: UserButtonProps) {
     dispatch(clearCopyTrade());
     dispatch(clearStockOption());
 
-    // Optional: Redirect to login page or reload
-    // window.location.href = "/login";
     router.push("/sign-in")
+  };
+
+  const handleEditProfile = () => {
+    router.push("/dashboard/profile");
   };
 
   const handleDropdownClose = () => {
@@ -114,8 +127,9 @@ export function UserButton({ userName }: UserButtonProps) {
           <AvatarFallback>{getInitials()}</AvatarFallback>
         </Avatar>
       </button>
-      <LogoutDropdown
+      <UserDropdown
         onLogout={handleLogout}
+        onEditProfile={handleEditProfile}
         onClose={handleDropdownClose}
         isOpen={dropdownOpen}
         anchorRef={avatarRef as React.RefObject<HTMLDivElement>}

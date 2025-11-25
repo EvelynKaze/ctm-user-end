@@ -279,6 +279,54 @@ export async function getUserById<TUser = unknown>(userId: string, options?: { t
 	}
 }
 
+export async function updateUser(
+	userId: string,
+	updates: Partial<{
+		username: string;
+		firstName: string;
+		lastName: string;
+		phoneNumber: string;
+		kycStatus: boolean;
+	}>,
+	options?: { token?: string }
+): Promise<GetUserResponse> {
+	try {
+		if (!userId) {
+			return { success: false, message: "userId is required" };
+		}
+
+		const headers: Record<string, string> = { "Content-Type": "application/json" };
+		if (options?.token) headers["Authorization"] = `Bearer ${options.token}`;
+
+		const response = await fetch(`${apiUrl}/users/${userId}`, {
+			method: "PUT",
+			headers,
+			body: JSON.stringify(updates),
+			cache: "no-store",
+		});
+
+		const data = await response.json().catch(() => ({}));
+
+		if (!response.ok) {
+			return {
+				success: false,
+				message: data?.message || `Update user failed: ${response.status} ${response.statusText}`,
+			};
+		}
+
+		return {
+			success: Boolean(data?.success ?? true),
+			message: data?.message,
+			data: data?.data,
+		};
+	} catch (error) {
+		return {
+			success: false,
+			message: error instanceof Error ? error.message : "Update user failed",
+		};
+	}
+}
+
 // Backwards-compatible alias if needed in callers
 export const signupAndStore = signup;
 
