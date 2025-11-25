@@ -13,8 +13,9 @@ import { toast } from "sonner";
 import { uploadFile } from "@/app/actions/upload";
 import { submitKYC } from "@/app/actions/kyc";
 import { getStoredToken } from "@/app/actions/auth";
-import { Shield, Upload, CheckCircle2, XCircle } from "lucide-react";
+import { Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const kycSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
@@ -41,8 +42,6 @@ export default function KYCPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [validIdPreview, setValidIdPreview] = useState<string | null>(null);
   const [passportPreview, setPassportPreview] = useState<string | null>(null);
-  const [validIdUploaded, setValidIdUploaded] = useState(false);
-  const [passportUploaded, setPassportUploaded] = useState(false);
 
   const form = useForm<KYCFormValues>({
     resolver: zodResolver(kycSchema),
@@ -86,10 +85,8 @@ export default function KYCPage() {
     reader.onloadend = () => {
       if (field === "validId") {
         setValidIdPreview(reader.result as string);
-        setValidIdUploaded(false);
       } else {
         setPassportPreview(reader.result as string);
-        setPassportUploaded(false);
       }
     };
     reader.readAsDataURL(file);
@@ -166,8 +163,6 @@ export default function KYCPage() {
       form.reset();
       setValidIdPreview(null);
       setPassportPreview(null);
-      setValidIdUploaded(true);
-      setPassportUploaded(true);
 
       // Redirect after a delay
       setTimeout(() => {
@@ -331,9 +326,9 @@ export default function KYCPage() {
                 <FormField
                   control={form.control}
                   name="validId"
-                  render={({ field: { value, onChange, ...field } }) => (
+                  render={({ field: { onChange, value, ...field } }) => (
                     <FormItem>
-                      <FormLabel>Valid ID (Driver's License, National ID, etc.)</FormLabel>
+                      <FormLabel>Valid ID (Driver&apos;s License, National ID, etc.)</FormLabel>
                       <FormControl>
                         <div className="space-y-2">
                           <Input
@@ -349,10 +344,12 @@ export default function KYCPage() {
                           />
                           {validIdPreview && (
                             <div className="relative w-full h-48 border rounded-md overflow-hidden">
-                              <img
+                              <Image
                                 src={validIdPreview}
                                 alt="Valid ID preview"
-                                className="w-full h-full object-contain"
+                                fill
+                                className="object-contain"
+                                unoptimized
                               />
                             </div>
                           )}
@@ -369,7 +366,7 @@ export default function KYCPage() {
                 <FormField
                   control={form.control}
                   name="passport"
-                  render={({ field: { value, onChange, ...field } }) => (
+                  render={({ field: { onChange, value, ...field } }) => (
                     <FormItem>
                       <FormLabel>Passport</FormLabel>
                       <FormControl>
@@ -387,10 +384,12 @@ export default function KYCPage() {
                           />
                           {passportPreview && (
                             <div className="relative w-full h-48 border rounded-md overflow-hidden">
-                              <img
+                              <Image
                                 src={passportPreview}
                                 alt="Passport preview"
-                                className="w-full h-full object-contain"
+                                fill
+                                className="object-contain"
+                                unoptimized
                               />
                             </div>
                           )}
