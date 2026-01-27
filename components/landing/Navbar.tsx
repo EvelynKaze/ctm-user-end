@@ -3,9 +3,11 @@ import { Button } from "@/components/ui/button";
 import { TrendingUp, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { fetchCryptoPrices, CryptoPrice } from "@/app/actions/fetchCryptoPrices";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [cryptoPrices, setCryptoPrices] = useState<CryptoPrice[]>([]);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -19,30 +21,47 @@ const Navbar = () => {
     };
   }, [mobileMenuOpen]);
 
+  // Fetch crypto prices
+  useEffect(() => {
+    const loadCryptoPrices = async () => {
+      try {
+        const result = await fetchCryptoPrices();
+        if (result?.success && result.data) {
+          setCryptoPrices(result.data.slice(0, 15)); // Display only first 15
+        }
+      } catch (error) {
+        console.error("Failed to fetch crypto prices:", error);
+      }
+    };
+
+    loadCryptoPrices();
+
+    // Refresh prices every 30 seconds
+    const interval = setInterval(loadCryptoPrices, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         {/* Crypto Ticker */}
-        <div className="bg-muted/30 py-2 overflow-hidden">
+        {/* <div className="bg-muted/30 py-2 overflow-hidden">
           <div className="animate-marquee whitespace-nowrap">
-            <span className="mx-8 text-sm">
-              <strong className="text-primary">BTC</strong> $43,256.78 
-              <span className="text-green-500 ml-2">+2.4%</span>
-            </span>
-            <span className="mx-8 text-sm">
-              <strong className="text-primary">ETH</strong> $2,645.32 
-              <span className="text-green-500 ml-2">+5.7%</span>
-            </span>
-            <span className="mx-8 text-sm">
-              <strong className="text-primary">ADA</strong> $0.534 
-              <span className="text-red-500 ml-2">-1.2%</span>
-            </span>
-            <span className="mx-8 text-sm">
-              <strong className="text-primary">SOL</strong> $98.45 
-              <span className="text-green-500 ml-2">+8.3%</span>
-            </span>
+            {cryptoPrices.length > 0 ? (
+              cryptoPrices.map((crypto, index) => (
+                <span key={crypto.symbol} className="mx-8 text-sm">
+                  <strong className="text-primary">{crypto.symbol.toUpperCase()}</strong> ${crypto.price.toFixed(2)}
+                  <span className={`ml-2 ${crypto.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {crypto.changePercent >= 0 ? '+' : ''}{crypto.changePercent.toFixed(1)}%
+                  </span>
+                </span>
+              ))
+            ) : (
+              // Fallback loading state
+              <span className="mx-8 text-sm text-muted-foreground">Loading crypto prices...</span>
+            )}
           </div>
-        </div>
+        </div> */}
 
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
