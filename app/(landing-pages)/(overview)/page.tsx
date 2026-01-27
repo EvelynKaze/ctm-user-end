@@ -27,7 +27,7 @@ export default function Home() {
 
   return (
     <div className="bg-black relative w-full">
-      <ToastNotification onLandingPage={true} />
+      {/* <ToastNotification onLandingPage={true} /> */}
       <Navbar /> 
       <HeroSection />
       <CryptoFeaturesSection />
