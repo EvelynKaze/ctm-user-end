@@ -14,6 +14,7 @@ export interface UserData {
   role: string;
   kycStatus: boolean;
   currentValue: number;
+  lifetimeWithdrawals?: number;
   accountStatus: boolean;
   totalInvestment: number;
   accountBalance?: number;

@@ -134,7 +134,7 @@ export function CopyTradingOptions({ portfolio }:
         setOpen(false);
         setSelectedTrade(null);
         toast("Success", { 
-          description: result.message || "Copytrade purchase created successfully! It will be pending until admin approval." 
+          description: result.message || "Copytrade purchase activated successfully!" 
         });
       } catch (error) {
         console.error("Error creating trade:", error);

@@ -129,8 +129,8 @@ export function StockTradingTable() {
       }
 
       const total = (quantity * price).toFixed(2)
-      toast.success("Order submitted", {
-        description: `${quantity} ${symbol} (~$${total}) is pending admin approval.`,
+      toast.success("Order confirmed", {
+        description: `${quantity} ${symbol} (~$${total}) is now active in your portfolio.`,
       })
       setQuantities((prev) => ({
         ...prev,

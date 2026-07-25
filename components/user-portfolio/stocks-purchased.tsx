@@ -131,8 +131,8 @@ const StockPage = () => {
             <div>
               <CardTitle className="text-2xl font-bold">Stock Holdings</CardTitle>
               <CardDescription className="mt-1">
-                Live mark-to-market while active. Liquidation requires admin
-                approval and settles as USDT.
+                Live mark-to-market while active. Request liquidation when you want to exit —
+                payouts are settled by admin as USDT.
               </CardDescription>
             </div>
             <Button
@@ -160,8 +160,8 @@ const StockPage = () => {
               <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
                 <p className="text-lg mb-2">No stock holdings yet</p>
                 <p className="text-sm">
-                  Buy stocks from Buy / Sell. Purchases stay pending until admin
-                  approval.
+                  Buy stocks from Buy / Sell. Purchases activate immediately when
+                  you have enough balance.
                 </p>
               </div>
             ) : (

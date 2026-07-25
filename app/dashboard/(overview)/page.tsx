@@ -62,10 +62,12 @@ export default function UserDashboard() {
     roi: userData?.roi || 0,
   };
 
-  // Calculate profit/loss
+  // Calculate profit/loss using equity formula
+  // net = (currentValue + lifetimeWithdrawals) - totalInvestment
   const currentValue = userData?.currentValue ?? 0;
   const totalInvestment = userData?.totalInvestment ?? 0;
-  const profitLoss = currentValue - totalInvestment;
+  const lifetimeWithdrawals = userData?.lifetimeWithdrawals ?? 0;
+  const profitLoss = currentValue + lifetimeWithdrawals - totalInvestment;
   const profitLossPercentage = userData?.roi ?? 0;
 
   const stats = {

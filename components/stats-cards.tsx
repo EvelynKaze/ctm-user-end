@@ -34,7 +34,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
           <div className="text-2xl font-bold">
             {formatCurrency(stats?.total_investment)}
           </div>
-          <p className="text-xs text-muted-foreground mt-1">Historical deposits</p>
+          <p className="text-xs text-muted-foreground mt-1">Lifetime deposits</p>
         </CardContent>
       </Card>
 
@@ -48,11 +48,11 @@ export function StatsCards({ stats }: StatsCardsProps) {
           <div className="text-2xl font-bold">
             {formatCurrency(stats?.account_balance ?? stats?.total_investment)}
           </div>
-          <p className="text-xs text-muted-foreground mt-1">Available for transactions</p>
+          <p className="text-xs text-muted-foreground mt-1">Available to spend</p>
         </CardContent>
       </Card>
 
-      {/* Current Value - Portfolio value */}
+      {/* Current Value - Total equity */}
       <Card className="text-appDarkCard overflow-x-scroll dark:text-white hover:bg-appCardGold hover:dark:text-appDarkCard transition-all duration-300 ease-linear">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-base font-medium">Current Value</CardTitle>
@@ -74,6 +74,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
               {profitLossPercentage.toFixed(2)}%)
             </span>
           </div>
+          <p className="text-xs text-muted-foreground mt-1">Available + locked trades</p>
         </CardContent>
       </Card>
 
