@@ -131,13 +131,24 @@ const Deposit = () => {
         try {
           const formValues = form.getValues();
           
-          // Create deposit record for wallet transactions
-          await createDeposit({
-            token_name: formValues.currency,
-            amount: typeof formValues.amount === "number" ? formValues.amount : Number(formValues.amount),
-            token_deposit_address: selectedAddress,
-            user: userData?._id,
-          });
+          const token = typeof window !== "undefined" ? localStorage.getItem("ctm_token") : null;
+          const depositResult = await createDeposit(
+            {
+              token_name: formValues.currency,
+              amount: typeof formValues.amount === "number" ? formValues.amount : Number(formValues.amount),
+              token_deposit_address: selectedAddress,
+            },
+            token
+          );
+
+          if (!depositResult?.success) {
+            toast("Error", {
+              description:
+                depositResult?.message ||
+                "Failed to create deposit record. Complete KYC if required.",
+            });
+            return;
+          }
 
           toast("Success", { description: "Transaction completed successfully!" });
         } catch (err) {

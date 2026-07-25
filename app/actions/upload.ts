@@ -7,10 +7,12 @@ export interface UploadResponse {
   message: string;
   data: {
     url: string;
+    previewUrl?: string;
     publicId: string;
     filename: string;
     size: number;
     format: string;
+    resourceType?: string;
   };
 }
 

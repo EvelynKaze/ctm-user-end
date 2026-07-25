@@ -284,7 +284,7 @@ export default function ProfilePage() {
                 </p>
                 {!userData.kycStatus && (
                   <p className="text-sm text-muted-foreground mt-1">
-                    Complete your KYC verification to access all platform features
+                    Complete KYC verification to deposit, withdraw, and trade
                   </p>
                 )}
               </div>

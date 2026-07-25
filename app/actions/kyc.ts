@@ -13,12 +13,16 @@ export interface KYCSubmissionRequest {
     country: string;
     postalCode: string;
   };
-  validIdUrl: string;
-  passportUrl: string;
+  validIdUrl?: string;
+  passportUrl?: string;
+  validIdPublicId: string;
+  passportPublicId: string;
   validIdFileName: string;
   passportFileName: string;
   validIdFileSize: string;
   passportFileSize: string;
+  validIdResourceType?: string;
+  passportResourceType?: string;
 }
 
 export interface KYCSubmissionResponse {

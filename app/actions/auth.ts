@@ -248,8 +248,9 @@ export async function getUserById<TUser = unknown>(userId: string, options?: { t
 			return { success: false, message: "userId is required" };
 		}
 
+		const token = options?.token || getStoredToken();
 		const headers: Record<string, string> = { "Content-Type": "application/json" };
-		if (options?.token) headers["Authorization"] = `Bearer ${options.token}`;
+		if (token) headers["Authorization"] = `Bearer ${token}`;
 
 		const response = await fetch(`${apiUrl}/users/${userId}`, {
 			method: "GET",

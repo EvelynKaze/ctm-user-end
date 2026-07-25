@@ -140,12 +140,16 @@ export default function KYCPage() {
           country: data.country,
           postalCode: data.postalCode,
         },
+        validIdPublicId: validIdResult.data.publicId,
+        passportPublicId: passportResult.data.publicId,
         validIdUrl: validIdResult.data.url,
         passportUrl: passportResult.data.url,
         validIdFileName: validIdResult.data.filename,
         passportFileName: passportResult.data.filename,
         validIdFileSize: validIdResult.data.size.toString(),
         passportFileSize: passportResult.data.size.toString(),
+        validIdResourceType: (validIdResult.data as { resourceType?: string }).resourceType,
+        passportResourceType: (passportResult.data as { resourceType?: string }).resourceType,
       };
 
       const kycResult = await submitKYC(kycData, token);

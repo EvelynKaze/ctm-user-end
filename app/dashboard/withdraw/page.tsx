@@ -210,18 +210,15 @@ const Withdrawal = () => {
             return;
           }
 
-          // Proceed with withdrawal
-          // Note: user ID should come from JWT token on backend, but keeping for backward compatibility
           const withdrawPayload = {
             token_name: data.currency,
             amount: data.amount,
             token_withdraw_address: data.address,
-            user: userData?._id || null,
           };
 
-          const transaction = await withdraw(withdrawPayload);
+          const transaction = await withdraw(withdrawPayload, token);
       
-          if (transaction) {
+          if (transaction?.success) {
             toast("Success", {
               description: `Withdrawal request created successfully. USD Value: $${validation.usdValue.toFixed(2)}`,
             });
@@ -237,12 +234,17 @@ const Withdrawal = () => {
             
             console.log("Withdrawal Transaction:", transaction);
           } else {
-            throw new Error("Failed to create withdrawal request");
+            throw new Error(
+              transaction?.message || "Failed to create withdrawal request"
+            );
           }
         } catch (error) {
           console.error("Error creating withdrawal:", error);
           toast("Error", {
-            description: "Failed to create withdrawal transaction.",
+            description:
+              error instanceof Error
+                ? error.message
+                : "Failed to create withdrawal transaction.",
           });
         } finally {
           setIsValidating(false);

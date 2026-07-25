@@ -63,13 +63,24 @@ const DepositModal: React.FC = () => {
 
   const createDepositRecord = async () => {
     try {
-      // Create the deposit record
-      await createDeposit({
-        token_name: currency,
-        amount: amount,
-        token_deposit_address: address,
-        user: userData?._id,
-      });
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("ctm_token") : null;
+      const result = await createDeposit(
+        {
+          token_name: currency,
+          amount: amount,
+          token_deposit_address: address,
+        },
+        token
+      );
+
+      if (!result?.success) {
+        toast.error(
+          result?.message ||
+            "Failed to create deposit record. Complete KYC if required."
+        );
+        return;
+      }
 
       setDepositCreated(true);
       toast.success("Deposit request created successfully!");

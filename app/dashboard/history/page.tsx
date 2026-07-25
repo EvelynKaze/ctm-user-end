@@ -95,7 +95,9 @@ const TransactionHistory = () => {
         
         setIsLoading(true);
         try {
-          const { deposits, withdraws } = await fetchTransactions(userData._id);
+          const token =
+            typeof window !== "undefined" ? localStorage.getItem("ctm_token") : null;
+          const { deposits, withdraws } = await fetchTransactions(userData._id, token);
           
           // Combine and format deposits and withdrawals
           const formattedTransactions: Transaction[] = [
