@@ -174,18 +174,18 @@ export default function CryptoBalance() {
             {portfolio && !isLoading && (
               <div
                 className={`text-sm mt-1 flex items-center gap-1 ${
-                  portfolio.totalProfitLoss >= 0 ? "text-green-500" : "text-red-500"
+                  (portfolio.totalProfitLoss ?? 0) >= 0 ? "text-green-500" : "text-red-500"
                 }`}
               >
-                {portfolio.totalProfitLoss >= 0 ? (
+                {(portfolio.totalProfitLoss ?? 0) >= 0 ? (
                   <TrendingUp className="h-4 w-4" />
                 ) : (
                   <TrendingDown className="h-4 w-4" />
                 )}
-                {portfolio.totalProfitLoss >= 0 ? "+" : ""}
-                {formatCurrency(portfolio.totalProfitLoss)} (
-                {portfolio.totalProfitLossPercentage >= 0 ? "+" : ""}
-                {portfolio.totalProfitLossPercentage.toFixed(2)}%)
+                {(portfolio.totalProfitLoss ?? 0) >= 0 ? "+" : ""}
+                {formatCurrency(portfolio.totalProfitLoss ?? 0)} (
+                {(portfolio.totalProfitLossPercentage ?? 0) >= 0 ? "+" : ""}
+                {(portfolio.totalProfitLossPercentage ?? 0).toFixed(2)}%)
               </div>
             )}
           </div>
@@ -231,34 +231,38 @@ export default function CryptoBalance() {
                         {formatTokenAmount(holding.amount)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {holding.currentPrice ? formatPrice(holding.currentPrice) : "-"}
+                        {holding.currentPrice != null ? formatPrice(holding.currentPrice) : "-"}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {holding.currentValue ? formatCurrency(holding.currentValue) : "-"}
+                        {holding.currentValue != null ? formatCurrency(holding.currentValue) : "-"}
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground">
                         {formatCurrency(holding.totalInvestedUsd)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div
-                          className={`flex items-center justify-end gap-1 ${
-                            holding.profitLoss >= 0 ? "text-green-500" : "text-red-500"
-                          }`}
-                        >
-                          {holding.profitLoss >= 0 ? (
-                            <TrendingUp className="h-4 w-4" />
-                          ) : (
-                            <TrendingDown className="h-4 w-4" />
-                          )}
-                          <span>
-                            {holding.profitLoss >= 0 ? "+" : ""}
-                            {formatCurrency(holding.profitLoss)}
-                          </span>
-                          <span className="text-xs ml-1">
-                            ({holding.profitLossPercentage >= 0 ? "+" : ""}
-                            {holding.profitLossPercentage.toFixed(2)}%)
-                          </span>
-                        </div>
+                        {holding.profitLoss == null || holding.profitLossPercentage == null ? (
+                          <span className="text-muted-foreground">-</span>
+                        ) : (
+                          <div
+                            className={`flex items-center justify-end gap-1 ${
+                              holding.profitLoss >= 0 ? "text-green-500" : "text-red-500"
+                            }`}
+                          >
+                            {holding.profitLoss >= 0 ? (
+                              <TrendingUp className="h-4 w-4" />
+                            ) : (
+                              <TrendingDown className="h-4 w-4" />
+                            )}
+                            <span>
+                              {holding.profitLoss >= 0 ? "+" : ""}
+                              {formatCurrency(holding.profitLoss)}
+                            </span>
+                            <span className="text-xs ml-1">
+                              ({holding.profitLossPercentage >= 0 ? "+" : ""}
+                              {holding.profitLossPercentage.toFixed(2)}%)
+                            </span>
+                          </div>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))
@@ -293,18 +297,18 @@ export default function CryptoBalance() {
               <div className="text-sm text-muted-foreground mb-1">Total Return</div>
               <div
                 className={`text-lg font-semibold flex items-center justify-center gap-1 ${
-                  portfolio.totalProfitLoss >= 0 ? "text-green-500" : "text-red-500"
+                  (portfolio.totalProfitLoss ?? 0) >= 0 ? "text-green-500" : "text-red-500"
                 }`}
               >
-                {portfolio.totalProfitLoss >= 0 ? (
+                {(portfolio.totalProfitLoss ?? 0) >= 0 ? (
                   <TrendingUp className="h-5 w-5" />
                 ) : (
                   <TrendingDown className="h-5 w-5" />
                 )}
-                {portfolio.totalProfitLoss >= 0 ? "+" : ""}
-                {formatCurrency(portfolio.totalProfitLoss)} (
-                {portfolio.totalProfitLossPercentage >= 0 ? "+" : ""}
-                {portfolio.totalProfitLossPercentage.toFixed(2)}%)
+                {(portfolio.totalProfitLoss ?? 0) >= 0 ? "+" : ""}
+                {formatCurrency(portfolio.totalProfitLoss ?? 0)} (
+                {(portfolio.totalProfitLossPercentage ?? 0) >= 0 ? "+" : ""}
+                {(portfolio.totalProfitLossPercentage ?? 0).toFixed(2)}%)
               </div>
             </div>
           </div>

@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Minus, Plus, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, Search, Filter } from "lucide-react"
 import { fetchStocks, ExchangeType } from "@/app/actions/fetch-stocks"
+import { createStockPurchase } from "@/app/actions/stockPurchases"
+import { getStoredToken } from "@/app/actions/auth"
 import { Stock, Pagination } from "@/types/stock"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-// import { toast } from "sonner"
+import { toast } from "sonner"
 
 interface StockQuantity {
   [symbol: string]: number
@@ -32,6 +34,8 @@ export function StockTradingTable() {
   const [cache, setCache] = useState<CachedPage>({})
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedExchange, setSelectedExchange] = useState<ExchangeType>("nasdaq")
+
+  const [buyingSymbol, setBuyingSymbol] = useState<string | null>(null)
 
   // Cache duration: 5 minutes
   const CACHE_DURATION = 5 * 60 * 1000
@@ -103,14 +107,41 @@ export function StockTradingTable() {
     }))
   }
 
-  const handleBuy = (symbol: string, quantity: number, price: number) => {
-    const total = (quantity * price).toFixed(2)
-    alert(`Order placed!\n\nStock: ${symbol}\nQuantity: ${quantity}\nPrice per share: $${price}\nTotal: $${total}`)
-    // Reset quantity after purchase
-    setQuantities((prev) => ({
-      ...prev,
-      [symbol]: 0,
-    }))
+  const handleBuy = async (symbol: string, quantity: number, price: number) => {
+    if (quantity <= 0 || price == null) return
+
+    const token = getStoredToken()
+    if (!token) {
+      toast.error("Please log in again to buy stocks")
+      return
+    }
+
+    setBuyingSymbol(symbol)
+    try {
+      const result = await createStockPurchase({ symbol, quantity }, token)
+      if (!result) {
+        toast.error("Failed to place stock order. Please try again.")
+        return
+      }
+      if (!result.success) {
+        toast.error(result.message || "Failed to place stock order")
+        return
+      }
+
+      const total = (quantity * price).toFixed(2)
+      toast.success("Order submitted", {
+        description: `${quantity} ${symbol} (~$${total}) is pending admin approval.`,
+      })
+      setQuantities((prev) => ({
+        ...prev,
+        [symbol]: 0,
+      }))
+    } catch (error) {
+      console.error("Stock buy error:", error)
+      toast.error("Failed to place stock order")
+    } finally {
+      setBuyingSymbol(null)
+    }
   }
 
   const goToPage = (page: number) => {
@@ -119,8 +150,14 @@ export function StockTradingTable() {
     setCurrentPage(newPage)
   }
 
-  const formatPrice = (price: number) => `$${price.toFixed(2)}`
-  const formatChange = (change: number, percentage: number) => {
+  const formatPrice = (price: number | null | undefined) => {
+    if (price == null || Number.isNaN(price)) return "-"
+    return `$${price.toFixed(2)}`
+  }
+  const formatChange = (change: number | null | undefined, percentage: number | null | undefined) => {
+    if (change == null || percentage == null || Number.isNaN(change) || Number.isNaN(percentage)) {
+      return <span className="text-muted-foreground">-</span>
+    }
     const isPositive = change >= 0
     return (
       <div className={`flex items-center gap-1 ${isPositive ? "text-green-600" : "text-red-600"}`}>
@@ -269,10 +306,11 @@ export function StockTradingTable() {
         ) : (
           stocks.map((stock) => {
           const quantity = quantities[stock.symbol] || 0
-          const total = quantity * stock.price
+          const price = stock.price ?? 0
+          const total = quantity * price
 
           return (
-            <Card key={stock.symbol} className="shadow-sm hover:shadow-md transition-shadow">
+            <Card key={stock._id || stock.symbol} className="shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
                   {/* Stock Info */}
@@ -317,9 +355,8 @@ export function StockTradingTable() {
                       type="number"
                       value={quantity}
                       onChange={(e) => updateQuantity(stock.symbol, Number.parseInt(e.target.value) || 0)}
-                      className="w-20 text-center"
+                      className="w-16 text-center"
                       min="0"
-                      placeholder="0"
                     />
                     <Button
                       variant="outline"
@@ -331,26 +368,28 @@ export function StockTradingTable() {
                     </Button>
                   </div>
 
-                  {/* Buy Button & Total */}
-                  <div className="text-center">
-                    {quantity > 0 && (
-                      <div className="text-sm text-muted-foreground mb-2">
-                        Total: <span className="font-bold text-foreground">{formatPrice(total)}</span>
-                      </div>
-                    )}
+                  {/* Total */}
+                  <div className="text-center md:text-left">
+                    <div className="text-sm text-muted-foreground">Total</div>
+                    <div className="font-bold text-foreground">{formatPrice(total)}</div>
+                  </div>
+
+                  {/* Buy */}
+                  <div className="flex justify-center md:justify-end">
                     <Button
-                      onClick={() => handleBuy(stock.symbol, quantity, stock.price)}
-                      disabled={quantity <= 0}
-                      className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-medium"
+                      onClick={() => handleBuy(stock.symbol, quantity, price)}
+                      disabled={quantity <= 0 || stock.price == null || buyingSymbol === stock.symbol}
+                      className="w-full md:w-auto"
                     >
-                      Buy {quantity > 0 ? `${quantity} shares` : ""}
+                      {buyingSymbol === stock.symbol ? "Submitting..." : "Buy"}
                     </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
           )
-        }))}
+          })
+        )}
       </div>
 
       {pagination && (

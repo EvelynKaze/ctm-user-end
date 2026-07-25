@@ -107,10 +107,15 @@ export const createCopyTrade = async (
 export interface UserCopyTradePurchase {
   _id: string;
   trade_title: string;
+  trade_min: number;
+  trade_max: number;
+  trade_risk: string;
   initial_investment: number;
   trade_current_value: number;
   trade_profit_loss: number;
+  isProfit: boolean;
   trade_status: string;
+  trade_win_rate?: number | null;
   trade_roi_min: number;
   trade_roi_max: number;
   trade_duration: number;

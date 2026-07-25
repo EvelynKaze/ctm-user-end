@@ -1,143 +1,123 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+
+import React, { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { RefreshCw } from "lucide-react";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { RefreshCw, TrendingUp, TrendingDown } from "lucide-react";
 import { TableSkeleton } from "@/skeletons";
-import { fetchPurchasedStocks } from "@/app/actions/fetchPurchasedStocks";
-import { createCopyStockTrade } from "@/app/actions/copyStockTrade";
-import { toast } from "sonner"
-import { updateCreateStock } from "@/app/actions/stockPurchase";
-import { StockTable } from "./stocks-purchased-table";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
-
-interface Stock {
-  $id: string;
-  stock_symbol: string;
-  stock_name: string;
-  stock_quantity: number;
-  stock_initial_value: number;
-  stock_initial_value_pu: number;
-  stock_current_value: number;
-  stock_status: string;
-  isProfit: boolean;
-  stock_profit_loss: number;
-  stock_change: number;
-  isMinus: boolean;
-  isTrading: boolean;
-}
+import {
+  fetchMyStockPurchases,
+  requestStockLiquidation,
+  StockPurchase,
+} from "@/app/actions/stockPurchases";
+import { getStoredToken } from "@/app/actions/auth";
+import { toast } from "sonner";
 
 const StockPage = () => {
-  const [stocks, setStocks] = useState<Stock[]>([]);
-  const user_id = localStorage.getItem("ctm_user_id") || "";
-  const { userData } = useSelector((state: RootState) => state.user);
-  const user_full_name = userData?.fullName || "";
-  const [sortConfig, setSortConfig] = useState({
-    key: "symbol",
-    direction: "asc",
-  });
-  const [filter, setFilter] = useState("all");
+  const [stocks, setStocks] = useState<StockPurchase[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [creatingTrade, setCreatingTrade] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [liquidatingId, setLiquidatingId] = useState<string | null>(null);
 
-  const getPurchasedStocks = useCallback(async () => {
+  const loadStocks = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      const purchasedStocks = await fetchPurchasedStocks(user_id);
-      setStocks(purchasedStocks);
-    } catch (error) {
-      console.error("Error fetching purchased stocks:", error);
+      const token = getStoredToken();
+      if (!token) {
+        setError("Authentication token not found. Please log in again.");
+        setStocks([]);
+        return;
+      }
+      const data = await fetchMyStockPurchases(token);
+      if (data === null) {
+        setError("Failed to load stock holdings.");
+        setStocks([]);
+        toast.error("Failed to load stock holdings");
+      } else {
+        setStocks(data);
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load stock holdings.");
+      setStocks([]);
     } finally {
       setIsLoading(false);
     }
-  }, [user_id])
+  }, []);
 
   useEffect(() => {
-    getPurchasedStocks();
-  }, [user_id, getPurchasedStocks]);
+    loadStocks();
+    const interval = setInterval(loadStocks, 45000);
+    return () => clearInterval(interval);
+  }, [loadStocks]);
 
-  const handleSort = (key: keyof Stock) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
+  const formatCurrency = (value: number | null | undefined) => {
+    if (value == null || Number.isNaN(value)) return "-";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(value);
+  };
 
-    setStocks((prevStocks) =>
-      [...prevStocks].sort((a: Stock, b: Stock) => {
-        if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
-        if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
-        return 0;
-      })
+  const statusBadge = (status: StockPurchase["stock_status"]) => {
+    const styles: Record<string, string> = {
+      pending: "bg-yellow-500 animate-pulse",
+      active: "bg-green-500",
+      pending_liquidation: "bg-orange-500 animate-pulse",
+      completed: "bg-blue-500",
+      cancelled: "bg-red-500",
+    };
+    const labels: Record<string, string> = {
+      pending: "Processing",
+      active: "Active",
+      pending_liquidation: "Liquidation pending",
+      completed: "Completed",
+      cancelled: "Cancelled",
+    };
+    return (
+      <span
+        className={`${styles[status] || "bg-gray-500"} rounded-xl px-2 py-1 text-white text-xs capitalize`}
+      >
+        {labels[status] || status}
+      </span>
     );
   };
 
-  const handleFilter = (value: string) => {
-    setFilter(value);
-  };
-
-  const filteredStocks =
-    filter === "all"
-      ? stocks
-      : stocks.filter((stock: Stock) => {
-          const totalValue = stock.stock_current_value * stock.stock_quantity;
-          const purchaseValue = stock.stock_initial_value;
-          const percentageChange =
-            ((totalValue - purchaseValue) / purchaseValue) * 100;
-
-          if (filter === "gainers") return percentageChange > 0;
-          if (filter === "losers") return percentageChange < 0;
-          return true;
-        });
-
-  const calculateTotalValue = (stock: Stock) => {
-    const quantity = stock.stock_quantity || 0
-    const current_value = stock.stock_current_value || 0
-    return Number((quantity * current_value).toFixed(2));
-  };
-
-  const handleCopyTrade = async (stock: Stock) => {
-    setCreatingTrade(true)
-    try{
-      createCopyStockTrade({
-        initial_investment: stock?.stock_initial_value,
-        trade_min: 0,
-        trade_max: 0,
-        trade_roi_min : 0,
-        trade_roi_max : 0,
-        trade_risk : "medium",
-        isProfit: stock?.isProfit,
-        trade_current_value: 0,
-        trade_title: stock?.stock_symbol,
-        trade_token: "stock",
-        trade_token_address: "stock",
-        trade_status: "approved",
-        trade_profit_loss: stock?.stock_profit_loss,
-        trade_win_rate: 0,
-        full_name: user_full_name,
-        user_id: user_id
-      })
-      const isTrading: boolean = true
-      updateCreateStock(stock?.$id, isTrading)
-      toast.success("Copy Trade Created")
-      getPurchasedStocks()
-    } catch(err){
-      console.error("Error creating copy trade:", err);
-      toast.error("Error creating copy trade")
-    } finally {
-      setCreatingTrade(false)
-      getPurchasedStocks()
+  const handleLiquidate = async (purchase: StockPurchase) => {
+    const token = getStoredToken();
+    if (!token) {
+      toast.error("Please log in again");
+      return;
     }
-  }
+    setLiquidatingId(purchase._id);
+    try {
+      const result = await requestStockLiquidation(purchase._id, token);
+      if (!result?.success) {
+        toast.error(result?.message || "Failed to request liquidation");
+        return;
+      }
+      toast.success("Liquidation requested — awaiting admin approval");
+      await loadStocks();
+    } finally {
+      setLiquidatingId(null);
+    }
+  };
 
   return (
     <div className="flex h-full justify-center items-center w-full">
@@ -147,50 +127,122 @@ const StockPage = () => {
         className="w-full"
       >
         <Card>
-          <CardHeader className="flex w-full flex-col sm:flex-row items-center justify-between">
-            <CardTitle className="text-2xl font-bold">Your Portfolio</CardTitle>
-            <div className="flex w-full flex-col sm:flex-row items-center gap-2 sm:gap-0 sm:space-x-4">
-              <Select className="w-full sm:w-max" onValueChange={handleFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Filter stocks" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Stocks</SelectItem>
-                  <SelectItem value="gainers">Gainers</SelectItem>
-                  <SelectItem value="losers">Losers</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                className="bg-appCardGold w-full sm:w-max"
-                onClick={() => getPurchasedStocks()}
-              >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Refresh Prices
-              </Button>
+          <CardHeader className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-2xl font-bold">Stock Holdings</CardTitle>
+              <CardDescription className="mt-1">
+                Live mark-to-market while active. Liquidation requires admin
+                approval and settles as USDT.
+              </CardDescription>
             </div>
+            <Button
+              className="bg-appCardGold w-full sm:w-max"
+              onClick={loadStocks}
+              disabled={isLoading}
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+              />
+              Refresh Prices
+            </Button>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {isLoading && stocks.length === 0 ? (
               <TableSkeleton />
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <p className="text-destructive mb-4">{error}</p>
+                <Button onClick={loadStocks} variant="outline">
+                  Retry
+                </Button>
+              </div>
             ) : stocks.length === 0 ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Stocks</CardTitle>
-                  <CardDescription>Your stock holdings will appear here</CardDescription>
-                </CardHeader>
-                <CardContent className="flex items-center justify-center h-[400px] text-muted-foreground">
-                  Stock information coming soon
-                </CardContent>
-              </Card>
+              <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+                <p className="text-lg mb-2">No stock holdings yet</p>
+                <p className="text-sm">
+                  Buy stocks from Buy / Sell. Purchases stay pending until admin
+                  approval.
+                </p>
+              </div>
             ) : (
-              <StockTable
-                filteredStocks={filteredStocks}
-                sortConfig={sortConfig}
-                handleSort={handleSort}
-                calculateTotalValue={calculateTotalValue}
-                handleCopyTrade={handleCopyTrade}
-                creatingTrade={creatingTrade}
-              />
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Symbol</TableHead>
+                    <TableHead>Qty</TableHead>
+                    <TableHead>Buy Price</TableHead>
+                    <TableHead>Invested</TableHead>
+                    <TableHead>Live Price</TableHead>
+                    <TableHead>Current Value</TableHead>
+                    <TableHead>P/L</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {stocks.map((stock) => (
+                    <TableRow key={stock._id}>
+                      <TableCell>
+                        <div className="font-medium">{stock.symbol}</div>
+                        <div className="text-xs text-muted-foreground truncate max-w-[140px]">
+                          {stock.name}
+                        </div>
+                      </TableCell>
+                      <TableCell>{stock.quantity}</TableCell>
+                      <TableCell>{formatCurrency(stock.purchase_price)}</TableCell>
+                      <TableCell>
+                        {formatCurrency(stock.initial_investment)}
+                      </TableCell>
+                      <TableCell>
+                        {stock.stock_status === "pending"
+                          ? "-"
+                          : formatCurrency(stock.current_price)}
+                      </TableCell>
+                      <TableCell>
+                        {stock.stock_status === "pending"
+                          ? statusBadge("pending")
+                          : formatCurrency(stock.current_value)}
+                      </TableCell>
+                      <TableCell>
+                        {stock.stock_status === "pending" ||
+                        stock.profit_loss == null ? (
+                          "-"
+                        ) : (
+                          <span
+                            className={
+                              stock.isProfit ? "text-green-600" : "text-red-500"
+                            }
+                          >
+                            {stock.isProfit ? (
+                              <TrendingUp className="inline mr-1 h-4 w-4" />
+                            ) : (
+                              <TrendingDown className="inline mr-1 h-4 w-4" />
+                            )}
+                            {formatCurrency(stock.profit_loss)}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>{statusBadge(stock.stock_status)}</TableCell>
+                      <TableCell>
+                        {stock.stock_status === "active" ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={liquidatingId === stock._id}
+                            onClick={() => handleLiquidate(stock)}
+                          >
+                            {liquidatingId === stock._id
+                              ? "Requesting..."
+                              : "Liquidate"}
+                          </Button>
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>

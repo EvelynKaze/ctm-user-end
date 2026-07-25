@@ -155,7 +155,12 @@ export function CopyTradingOptions({ portfolio }:
           <CardContent>
             <ScrollArea className="h-[400px] pr-2">
               <div className="grid gap-4">
-                {trades?.map((trade) => (
+                {trades.length === 0 ? (
+                  <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
+                    No copy trading options available right now.
+                  </div>
+                ) : (
+                  trades.map((trade) => (
                   <Card key={trade._id} className={`flex flex-col relative ${trade?.isRecommended ? 'ring-2 ring-appGold-500 border-appGold-300' : ''}`}>
                     {trade?.isRecommended && (
                       <div className="absolute -top-2 right-20 rounded-lg z-10 bg-appGold200">
@@ -196,7 +201,8 @@ export function CopyTradingOptions({ portfolio }:
                       </Button>
                     </CardFooter>
                   </Card>
-                ))}
+                  ))
+                )}
               </div>
             </ScrollArea>
           </CardContent>

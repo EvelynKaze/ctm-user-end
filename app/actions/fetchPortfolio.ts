@@ -6,11 +6,11 @@ export interface TokenHolding {
   tokenName: string;
   amount: number;
   averageAcquisitionPrice: number;
-  currentPrice: number;
+  currentPrice: number | null;
   totalInvestedUsd: number;
-  currentValue: number;
-  profitLoss: number;
-  profitLossPercentage: number;
+  currentValue: number | null;
+  profitLoss: number | null;
+  profitLossPercentage: number | null;
   lastUpdated: string;
 }
 
